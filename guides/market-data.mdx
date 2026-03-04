@@ -1,0 +1,626 @@
+---
+title: 'Market Data'
+description: 'Access trading symbols and group configurations using SymbolApi and GroupApi'
+icon: 'chart-candlestick'
+---
+
+## Overview
+
+The MT5 Manager API provides two key endpoints for accessing market data: the SymbolApi for retrieving trading symbols and their properties, and the GroupApi for managing trading group configurations. This guide covers both APIs and their practical applications.
+
+## Working with Symbols
+
+The SymbolApi allows you to retrieve information about all available trading instruments on your MT5 server.
+
+<Steps>
+  <Step title="Initialize the SymbolApi">
+    Set up the SymbolApi client with your configuration.
+
+    ```php
+    use D4T\MT5Sdk\MT5Manager\SymbolApi;
+    use D4T\MT5Sdk\Configuration;
+    use GuzzleHttp\Client;
+
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+
+    $symbolApi = new SymbolApi(new Client(), $config);
+    ```
+  </Step>
+
+  <Step title="Retrieve All Symbols">
+    Get the complete list of trading symbols available on your server.
+
+    ```php
+    try {
+        $symbols = $symbolApi->symbolsGet();
+        
+        echo "Total symbols available: " . count($symbols) . "\n\n";
+        
+        foreach ($symbols as $symbol) {
+            echo "Symbol: " . $symbol->getSymbol() . "\n";
+            echo "Description: " . $symbol->getDescription() . "\n";
+            echo "Path: " . $symbol->getPath() . "\n";
+            echo "Digits: " . $symbol->getDigits() . "\n";
+            echo "Contract Size: " . $symbol->getContractSize() . "\n";
+            echo "Currency: " . $symbol->getCurrencyBase() . "/" . 
+                 $symbol->getCurrencyProfit() . "\n";
+            echo "---\n";
+        }
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Working with Groups
+
+The GroupApi provides methods to retrieve trading group configurations and individual group details.
+
+<Steps>
+  <Step title="Initialize the GroupApi">
+    Set up the GroupApi client.
+
+    ```php
+    use D4T\MT5Sdk\MT5Manager\GroupApi;
+    use D4T\MT5Sdk\Configuration;
+    use GuzzleHttp\Client;
+
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+
+    $groupApi = new GroupApi(new Client(), $config);
+    ```
+  </Step>
+
+  <Step title="List All Groups">
+    Retrieve all trading group names.
+
+    ```php
+    try {
+        $groups = $groupApi->groupsGet();
+        
+        echo "Available trading groups:\n";
+        foreach ($groups as $groupName) {
+            echo "- $groupName\n";
+        }
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Step>
+
+  <Step title="Get Group Details">
+    Retrieve detailed configuration for a specific group.
+
+    ```php
+    try {
+        $groupName = 'demo\\\\demoforex';
+        $group = $groupApi->groupGroupNameGet($groupName);
+        
+        echo "Group: " . $group->getGroup() . "\n";
+        echo "Company: " . $group->getCompany() . "\n";
+        echo "Currency: " . $group->getCurrency() . "\n";
+        echo "Leverage: " . $group->getLeverage() . "\n";
+        echo "Margin Call: " . $group->getMarginCall() . "%\n";
+        echo "Margin Stop Out: " . $group->getMarginStopout() . "%\n";
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Complete Working Examples
+
+<CodeGroup>
+```php Symbol Browser
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\SymbolApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$symbolApi = new SymbolApi(new Client(), $config);
+
+function categorizeSymbols() {
+    global $symbolApi;
+    
+    try {
+        $symbols = $symbolApi->symbolsGet();
+        
+        $categories = [
+            'Forex' => [],
+            'Metals' => [],
+            'Indices' => [],
+            'Crypto' => [],
+            'Other' => []
+        ];
+        
+        foreach ($symbols as $symbol) {
+            $symbolName = $symbol->getSymbol();
+            $path = $symbol->getPath();
+            
+            if (stripos($path, 'forex') !== false) {
+                $categories['Forex'][] = $symbolName;
+            } elseif (stripos($path, 'metals') !== false || 
+                      stripos($symbolName, 'XAU') !== false || 
+                      stripos($symbolName, 'XAG') !== false) {
+                $categories['Metals'][] = $symbolName;
+            } elseif (stripos($path, 'indices') !== false || 
+                      stripos($path, 'index') !== false) {
+                $categories['Indices'][] = $symbolName;
+            } elseif (stripos($path, 'crypto') !== false || 
+                      stripos($symbolName, 'BTC') !== false || 
+                      stripos($symbolName, 'ETH') !== false) {
+                $categories['Crypto'][] = $symbolName;
+            } else {
+                $categories['Other'][] = $symbolName;
+            }
+        }
+        
+        return $categories;
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+        return null;
+    }
+}
+
+// Display categorized symbols
+$categories = categorizeSymbols();
+
+if ($categories) {
+    foreach ($categories as $category => $symbols) {
+        if (count($symbols) > 0) {
+            echo "\n=== $category (" . count($symbols) . ") ===\n";
+            foreach ($symbols as $symbol) {
+                echo "  - $symbol\n";
+            }
+        }
+    }
+}
+```
+
+```php Symbol Information Lookup
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\SymbolApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$symbolApi = new SymbolApi(new Client(), $config);
+
+function findSymbol($symbolName) {
+    global $symbolApi;
+    
+    try {
+        $symbols = $symbolApi->symbolsGet();
+        
+        foreach ($symbols as $symbol) {
+            if (strtoupper($symbol->getSymbol()) === strtoupper($symbolName)) {
+                return [
+                    'found' => true,
+                    'symbol' => $symbol->getSymbol(),
+                    'description' => $symbol->getDescription(),
+                    'path' => $symbol->getPath(),
+                    'digits' => $symbol->getDigits(),
+                    'contract_size' => $symbol->getContractSize(),
+                    'currency_base' => $symbol->getCurrencyBase(),
+                    'currency_profit' => $symbol->getCurrencyProfit(),
+                    'currency_margin' => $symbol->getCurrencyMargin(),
+                    'tick_size' => $symbol->getTickSize(),
+                    'tick_value' => $symbol->getTickValue(),
+                    'volume_min' => $symbol->getVolumeMin(),
+                    'volume_max' => $symbol->getVolumeMax(),
+                    'volume_step' => $symbol->getVolumeStep()
+                ];
+            }
+        }
+        
+        return ['found' => false, 'message' => 'Symbol not found'];
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        return ['found' => false, 'error' => $e->getMessage()];
+    }
+}
+
+// Lookup symbol
+$symbolInfo = findSymbol('EURUSD');
+
+if ($symbolInfo['found']) {
+    echo "Symbol Information for {$symbolInfo['symbol']}\n";
+    echo "===================================\n";
+    echo "Description: {$symbolInfo['description']}\n";
+    echo "Category: {$symbolInfo['path']}\n";
+    echo "Precision: {$symbolInfo['digits']} digits\n";
+    echo "Contract Size: {$symbolInfo['contract_size']}\n";
+    echo "Currency Pair: {$symbolInfo['currency_base']}/{$symbolInfo['currency_profit']}\n";
+    echo "Tick Size: {$symbolInfo['tick_size']}\n";
+    echo "Tick Value: {$symbolInfo['tick_value']}\n";
+    echo "Volume Range: {$symbolInfo['volume_min']} - {$symbolInfo['volume_max']}\n";
+    echo "Volume Step: {$symbolInfo['volume_step']}\n";
+} else {
+    echo isset($symbolInfo['error']) ? 
+        "Error: {$symbolInfo['error']}" : 
+        $symbolInfo['message'];
+    echo "\n";
+}
+```
+
+```php Group Configuration Report
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\GroupApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$groupApi = new GroupApi(new Client(), $config);
+
+function generateGroupReport() {
+    global $groupApi;
+    
+    try {
+        // Get all group names
+        $groupNames = $groupApi->groupsGet();
+        
+        echo "Trading Groups Configuration Report\n";
+        echo "===================================\n\n";
+        
+        foreach ($groupNames as $groupName) {
+            try {
+                $group = $groupApi->groupGroupNameGet($groupName);
+                
+                echo "Group: {$group->getGroup()}\n";
+                echo "  Company: {$group->getCompany()}\n";
+                echo "  Currency: {$group->getCurrency()}\n";
+                echo "  Leverage: 1:{$group->getLeverage()}\n";
+                echo "  Margin Call: {$group->getMarginCall()}%\n";
+                echo "  Stop Out: {$group->getMarginStopout()}%\n";
+                echo "  Default Deposit: {$group->getDepositDefault()}\n";
+                echo "  Reports: " . ($group->getReports() ? 'Enabled' : 'Disabled') . "\n";
+                echo "  News: " . ($group->getNews() ? 'Enabled' : 'Disabled') . "\n";
+                echo "\n";
+                
+            } catch (\D4T\MT5Sdk\ApiException $e) {
+                echo "  Error loading details: {$e->getMessage()}\n\n";
+            }
+        }
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+}
+
+generateGroupReport();
+```
+
+```php Market Data Service
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\SymbolApi;
+use D4T\MT5Sdk\MT5Manager\GroupApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+class MarketDataService {
+    private $symbolApi;
+    private $groupApi;
+    private $symbolsCache = null;
+    private $groupsCache = null;
+    
+    public function __construct($host, $token) {
+        $config = Configuration::getDefaultConfiguration()
+            ->setHost($host)
+            ->setAccessToken($token);
+        
+        $client = new Client();
+        $this->symbolApi = new SymbolApi($client, $config);
+        $this->groupApi = new GroupApi($client, $config);
+    }
+    
+    public function getAllSymbols($useCache = true) {
+        if ($useCache && $this->symbolsCache !== null) {
+            return $this->symbolsCache;
+        }
+        
+        try {
+            $this->symbolsCache = $this->symbolApi->symbolsGet();
+            return $this->symbolsCache;
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return [];
+        }
+    }
+    
+    public function getSymbolsByCategory($category) {
+        $allSymbols = $this->getAllSymbols();
+        $filtered = [];
+        
+        foreach ($allSymbols as $symbol) {
+            $path = strtolower($symbol->getPath());
+            if (stripos($path, strtolower($category)) !== false) {
+                $filtered[] = $symbol;
+            }
+        }
+        
+        return $filtered;
+    }
+    
+    public function getAllGroups($useCache = true) {
+        if ($useCache && $this->groupsCache !== null) {
+            return $this->groupsCache;
+        }
+        
+        try {
+            $this->groupsCache = $this->groupApi->groupsGet();
+            return $this->groupsCache;
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return [];
+        }
+    }
+    
+    public function getGroupDetails($groupName) {
+        try {
+            return $this->groupApi->groupGroupNameGet($groupName);
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return null;
+        }
+    }
+    
+    public function getSymbolInfo($symbolName) {
+        $symbols = $this->getAllSymbols();
+        
+        foreach ($symbols as $symbol) {
+            if (strtoupper($symbol->getSymbol()) === strtoupper($symbolName)) {
+                return $symbol;
+            }
+        }
+        
+        return null;
+    }
+    
+    public function calculatePipValue($symbolName, $lotSize = 1.0) {
+        $symbol = $this->getSymbolInfo($symbolName);
+        
+        if (!$symbol) {
+            return null;
+        }
+        
+        $contractSize = $symbol->getContractSize();
+        $tickSize = $symbol->getTickSize();
+        $tickValue = $symbol->getTickValue();
+        
+        $pipValue = ($tickValue / $tickSize) * $lotSize;
+        
+        return [
+            'symbol' => $symbolName,
+            'lot_size' => $lotSize,
+            'pip_value' => $pipValue,
+            'currency' => $symbol->getCurrencyProfit()
+        ];
+    }
+}
+
+// Usage
+$marketData = new MarketDataService(
+    'https://your-mt5-server.com/api',
+    'your_bearer_token'
+);
+
+// Get forex symbols
+$forexSymbols = $marketData->getSymbolsByCategory('forex');
+echo "Forex symbols: " . count($forexSymbols) . "\n";
+
+// Calculate pip value
+$pipInfo = $marketData->calculatePipValue('EURUSD', 1.0);
+if ($pipInfo) {
+    echo "\nPip value for {$pipInfo['symbol']}:\n";
+    echo "  Lot size: {$pipInfo['lot_size']}\n";
+    echo "  Pip value: {$pipInfo['pip_value']} {$pipInfo['currency']}\n";
+}
+
+// Get all groups
+$groups = $marketData->getAllGroups();
+echo "\nTotal groups: " . count($groups) . "\n";
+```
+</CodeGroup>
+
+## Symbol Properties
+
+The `Symbol` model includes comprehensive trading instrument information:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `symbol` | string | Symbol name (e.g., EURUSD) |
+| `description` | string | Human-readable description |
+| `path` | string | Category path |
+| `digits` | integer | Price decimal places |
+| `contract_size` | float | Size of 1 lot |
+| `currency_base` | string | Base currency |
+| `currency_profit` | string | Profit currency |
+| `currency_margin` | string | Margin currency |
+| `tick_size` | float | Minimum price change |
+| `tick_value` | float | Value of 1 tick |
+| `volume_min` | float | Minimum trade volume |
+| `volume_max` | float | Maximum trade volume |
+| `volume_step` | float | Volume increment step |
+
+## Group Properties
+
+The `Group` model contains trading group configuration:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `group` | string | Group name |
+| `company` | string | Company name |
+| `currency` | string | Account currency |
+| `leverage` | integer | Maximum leverage |
+| `margin_call` | float | Margin call level (%) |
+| `margin_stopout` | float | Stop out level (%) |
+| `deposit_default` | float | Default deposit amount |
+| `reports` | boolean | Reports enabled |
+| `news` | boolean | News enabled |
+
+<Note>
+  Symbol and group data is relatively static but can change. Consider implementing a caching strategy to reduce API calls while keeping data reasonably current.
+</Note>
+
+## API Methods Reference
+
+### SymbolApi Methods
+
+| Method | Parameters | Description | Returns |
+|--------|-----------|-------------|----------|
+| `symbolsGet()` | None | Get all trading symbols | Symbol[] |
+| `symbolsGetAsync()` | None | Get symbols asynchronously | Promise |
+
+### GroupApi Methods
+
+| Method | Parameters | Description | Returns |
+|--------|-----------|-------------|----------|
+| `groupsGet()` | None | Get all group names | string[] |
+| `groupGroupNameGet($name)` | `name`: Group name | Get group details | Group |
+| `groupsGetAsync()` | None | Get groups asynchronously | Promise |
+| `groupGroupNameGetAsync($name)` | `name`: Group name | Get group async | Promise |
+
+## Use Cases
+
+<Tabs>
+  <Tab title="Symbol Validation">
+    ```php
+    function isValidSymbol($symbolName, $symbolApi) {
+        try {
+            $symbols = $symbolApi->symbolsGet();
+            
+            foreach ($symbols as $symbol) {
+                if (strtoupper($symbol->getSymbol()) === strtoupper($symbolName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return false;
+        }
+    }
+    
+    // Validate before placing order
+    if (isValidSymbol('EURUSD', $symbolApi)) {
+        // Proceed with order
+    }
+    ```
+  </Tab>
+
+  <Tab title="Group Leverage Check">
+    ```php
+    function getGroupLeverage($groupName, $groupApi) {
+        try {
+            $group = $groupApi->groupGroupNameGet($groupName);
+            return $group->getLeverage();
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return null;
+        }
+    }
+    
+    // Check leverage before user creation
+    $leverage = getGroupLeverage('demo\\\\demoforex', $groupApi);
+    echo "Maximum leverage: 1:$leverage\n";
+    ```
+  </Tab>
+
+  <Tab title="Symbol Search">
+    ```php
+    function searchSymbols($query, $symbolApi) {
+        try {
+            $symbols = $symbolApi->symbolsGet();
+            $results = [];
+            
+            foreach ($symbols as $symbol) {
+                if (stripos($symbol->getSymbol(), $query) !== false || 
+                    stripos($symbol->getDescription(), $query) !== false) {
+                    $results[] = [
+                        'symbol' => $symbol->getSymbol(),
+                        'description' => $symbol->getDescription()
+                    ];
+                }
+            }
+            
+            return $results;
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return [];
+        }
+    }
+    
+    // Search for EUR symbols
+    $results = searchSymbols('EUR', $symbolApi);
+    foreach ($results as $result) {
+        echo "{$result['symbol']}: {$result['description']}\n";
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+1. **Caching**: Cache symbol and group data to reduce API calls
+2. **Validation**: Always validate symbols before using them in trading operations
+3. **Error Handling**: Implement proper error handling for API failures
+4. **Async Loading**: Use async methods when loading large datasets
+5. **Category Organization**: Organize symbols by category for better user experience
+6. **Group Escaping**: Remember to properly escape backslashes in group names (`demo\\\\demoforex`)
+
+<Warning>
+  Group names containing backslashes (path separators) must be properly escaped when used in API calls. For example, `demo\demoforex` should be passed as `demo\\\\demoforex` in PHP strings.
+</Warning>
+
+## Performance Optimization
+
+```php
+// Implement caching to reduce API calls
+class CachedMarketData {
+    private $cache = [];
+    private $ttl = 3600; // 1 hour
+    
+    public function getSymbols($symbolApi) {
+        if (isset($this->cache['symbols']) && 
+            time() - $this->cache['symbols']['time'] < $this->ttl) {
+            return $this->cache['symbols']['data'];
+        }
+        
+        $symbols = $symbolApi->symbolsGet();
+        $this->cache['symbols'] = [
+            'data' => $symbols,
+            'time' => time()
+        ];
+        
+        return $symbols;
+    }
+}
+```
+
+## Next Steps
+
+- [Account Management](/guides/account-management) - Retrieve account information
+- [User Management](/guides/user-management) - Create and manage users with appropriate groups
+- [Trading Operations](/guides/trading-operations) - Execute trades with validated symbols

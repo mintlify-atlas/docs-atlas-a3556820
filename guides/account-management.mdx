@@ -1,0 +1,269 @@
+---
+title: 'Account Management'
+description: 'Learn how to retrieve and manage MT5 trading account information using the AccountApi'
+icon: 'user'
+---
+
+## Overview
+
+The AccountApi provides methods to retrieve detailed information about trading accounts in MetaTrader 5. This guide demonstrates how to fetch account data, including balance, equity, margin, and trading permissions.
+
+## Getting Account Information
+
+Use the `accountLoginGet()` method to retrieve comprehensive account details for a specific user.
+
+<Steps>
+  <Step title="Initialize the API Client">
+    Set up the AccountApi with your configuration and authentication token.
+
+    ```php
+    use D4T\MT5Sdk\MT5Manager\AccountApi;
+    use D4T\MT5Sdk\Configuration;
+    use GuzzleHttp\Client;
+
+    // Configure API client
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+
+    // Initialize AccountApi
+    $accountApi = new AccountApi(
+        new Client(),
+        $config
+    );
+    ```
+  </Step>
+
+  <Step title="Retrieve Account Data">
+    Call the `accountLoginGet()` method with the user's login ID.
+
+    ```php
+    try {
+        // Get account information for login 12345
+        $account = $accountApi->accountLoginGet('12345');
+        
+        // Access account properties
+        echo "Login: " . $account->getLogin() . "\n";
+        echo "Balance: $" . $account->getBalance() . "\n";
+        echo "Equity: $" . $account->getEquity() . "\n";
+        echo "Margin: $" . $account->getMargin() . "\n";
+        echo "Free Margin: $" . $account->getMarginFree() . "\n";
+        echo "Margin Level: " . $account->getMarginLevel() . "%\n";
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+        echo "Response Body: " . $e->getResponseBody() . "\n";
+    }
+    ```
+  </Step>
+
+  <Step title="Handle the Response">
+    The method returns an `Account` model object with all account properties.
+
+    ```php
+    // Check account status
+    if ($account->getMarginLevel() < 100) {
+        echo "Warning: Low margin level!\n";
+    }
+
+    // Display account metrics
+    $profit = $account->getEquity() - $account->getBalance();
+    echo "Current Profit/Loss: $" . number_format($profit, 2) . "\n";
+    
+    // Check trading permissions
+    if ($account->getTradeDisabled()) {
+        echo "Trading is currently disabled for this account.\n";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Complete Working Example
+
+<CodeGroup>
+```php Basic Usage
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+// Configure the API
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$accountApi = new AccountApi(new Client(), $config);
+
+try {
+    $userLogin = '12345';
+    $account = $accountApi->accountLoginGet($userLogin);
+    
+    echo "=== Account Information ===". "\n";
+    echo "Login: " . $account->getLogin() . "\n";
+    echo "Name: " . $account->getName() . "\n";
+    echo "Group: " . $account->getGroup() . "\n";
+    echo "Balance: $" . number_format($account->getBalance(), 2) . "\n";
+    echo "Equity: $" . number_format($account->getEquity(), 2) . "\n";
+    echo "Credit: $" . number_format($account->getCredit(), 2) . "\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "API Error: " . $e->getMessage() . "\n";
+    if ($e->getCode() === 400) {
+        echo "Invalid request. Check the login ID.\n";
+    }
+}
+```
+
+```php With Error Handling
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+function getAccountInfo($login) {
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+    
+    $accountApi = new AccountApi(new Client(), $config);
+    
+    try {
+        $account = $accountApi->accountLoginGet($login);
+        
+        return [
+            'success' => true,
+            'data' => [
+                'login' => $account->getLogin(),
+                'balance' => $account->getBalance(),
+                'equity' => $account->getEquity(),
+                'margin' => $account->getMargin(),
+                'margin_free' => $account->getMarginFree(),
+                'margin_level' => $account->getMarginLevel(),
+                'profit' => $account->getProfit(),
+            ]
+        ];
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        return [
+            'success' => false,
+            'error' => $e->getMessage(),
+            'code' => $e->getCode()
+        ];
+    }
+}
+
+// Usage
+$result = getAccountInfo('12345');
+
+if ($result['success']) {
+    echo json_encode($result['data'], JSON_PRETTY_PRINT);
+} else {
+    echo "Error {$result['code']}: {$result['error']}\n";
+}
+```
+
+```php Async Request
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$accountApi = new AccountApi(new Client(), $config);
+
+// Get account information asynchronously
+$promise = $accountApi->accountLoginGetAsync('12345');
+
+$promise->then(
+    function ($account) {
+        echo "Account Balance: $" . $account->getBalance() . "\n";
+        echo "Account Equity: $" . $account->getEquity() . "\n";
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage() . "\n";
+    }
+);
+
+$promise->wait();
+```
+</CodeGroup>
+
+## Account Properties
+
+The `Account` model returned by `accountLoginGet()` includes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `login` | integer | Account login ID |
+| `name` | string | Account holder name |
+| `group` | string | Trading group name |
+| `balance` | float | Account balance |
+| `equity` | float | Current equity |
+| `credit` | float | Credit amount |
+| `margin` | float | Used margin |
+| `margin_free` | float | Free margin available |
+| `margin_level` | float | Margin level percentage |
+| `profit` | float | Current profit/loss |
+| `trade_disabled` | boolean | Trading permissions status |
+
+<Note>
+  The `accountLoginGet()` method requires a valid Bearer token obtained from the `/init/` endpoint. See the [Authentication guide](/concepts/authentication) for details.
+</Note>
+
+## Error Handling
+
+The API throws `ApiException` when errors occur. Common error codes:
+
+<CodeGroup>
+```php Status 400
+// Bad Request - Invalid login ID or parameters
+try {
+    $account = $accountApi->accountLoginGet('invalid');
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    if ($e->getCode() === 400) {
+        echo "Invalid request: " . $e->getMessage();
+        // Check response body for details
+        $errorDetails = json_decode($e->getResponseBody(), true);
+        print_r($errorDetails);
+    }
+}
+```
+
+```php Status 401
+// Unauthorized - Invalid or expired token
+try {
+    $account = $accountApi->accountLoginGet('12345');
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    if ($e->getCode() === 401) {
+        echo "Authentication failed. Please obtain a new token.";
+    }
+}
+```
+</CodeGroup>
+
+<Warning>
+  Always validate the login ID before making API calls to avoid unnecessary errors. Account data is sensitive - ensure proper access control in your application.
+</Warning>
+
+## Best Practices
+
+1. **Cache Account Data**: Avoid excessive API calls by caching account information when appropriate
+2. **Error Handling**: Always wrap API calls in try-catch blocks
+3. **Token Management**: Implement token refresh logic for long-running applications
+4. **Validation**: Validate login IDs before making requests
+5. **Async Operations**: Use async methods for better performance when fetching multiple accounts
+
+## Next Steps
+
+- [User Management](/guides/user-management) - Create and manage user accounts
+- [Trading Operations](/guides/trading-operations) - Work with positions, orders, and deals
+- [Market Data](/guides/market-data) - Access symbols and group information

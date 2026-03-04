@@ -1,0 +1,259 @@
+---
+title: Configuration
+description: Configure the MT5 Manager API SDK with host, authentication, and debugging options
+---
+
+## Overview
+
+The `Configuration` class manages all SDK settings including API host, authentication credentials, debugging, and HTTP client options.
+
+## Creating a Configuration
+
+```php
+use D4T\MT5Sdk\Configuration;
+
+// Create a new configuration instance
+$config = new Configuration();
+
+// Or get the default configuration
+$config = Configuration::getDefaultConfiguration();
+```
+
+## Basic Configuration
+
+### Setting the API Host
+
+Configure the base URL for your MT5 API server:
+
+```php
+// Set the host (default is '/v1')
+$config->setHost('https://your-mt5-server.com/v1');
+
+// Get the current host
+$host = $config->getHost();
+```
+
+<ParamField path="host" type="string" default="/v1">
+  The base URL for the MT5 API server
+</ParamField>
+
+### Access Token (Bearer Authentication)
+
+Configure the bearer token for authenticated requests:
+
+```php
+// Set access token for OAuth/Bearer authentication
+$config->setAccessToken('your-bearer-token-here');
+
+// Get current access token
+$token = $config->getAccessToken();
+```
+
+<Info>
+The access token is obtained by calling the `/init/` endpoint. See the [Authentication](/concepts/authentication) guide for details.
+</Info>
+
+## Advanced Configuration
+
+### API Keys
+
+For API key-based authentication (alternative to bearer tokens):
+
+```php
+// Set API key
+$config->setApiKey('api_key_identifier', 'your-api-key');
+
+// Set API key prefix (e.g., 'Bearer')
+$config->setApiKeyPrefix('api_key_identifier', 'Bearer');
+
+// Get API key with prefix
+$keyWithPrefix = $config->getApiKeyWithPrefix('api_key_identifier');
+// Returns: "Bearer your-api-key"
+```
+
+### HTTP Basic Authentication
+
+Configure username and password for HTTP basic auth:
+
+```php
+// Set credentials
+$config->setUsername('your-username');
+$config->setPassword('your-password');
+
+// Get credentials
+$username = $config->getUsername();
+$password = $config->getPassword();
+```
+
+<Warning>
+HTTP Basic Authentication is less secure than bearer tokens. Use bearer token authentication when possible.
+</Warning>
+
+### User Agent
+
+Customize the HTTP User-Agent header:
+
+```php
+// Set custom user agent (default is 'Swagger-Codegen/1.0.0/php')
+$config->setUserAgent('MyApp/1.0.0');
+
+// Get current user agent
+$userAgent = $config->getUserAgent();
+```
+
+## Debugging
+
+### Enable Debug Mode
+
+Enable debugging to log HTTP requests and responses:
+
+```php
+// Enable debug mode
+$config->setDebug(true);
+
+// Set debug output file (default is 'php://output')
+$config->setDebugFile('/var/log/mt5-api-debug.log');
+
+// Check if debug is enabled
+if ($config->getDebug()) {
+    echo "Debug mode is enabled";
+}
+```
+
+<ParamField path="debug" type="bool" default="false">
+  Enable or disable debug logging
+</ParamField>
+
+<ParamField path="debugFile" type="string" default="php://output">
+  Path to debug log file. Use `php://output` for console output.
+</ParamField>
+
+### Debug Report
+
+Generate a debug report with system information:
+
+```php
+$report = Configuration::toDebugReport();
+echo $report;
+
+// Output:
+// PHP SDK (D4T\MT5Sdk) Debug Report:
+//     OS: Linux hostname 5.4.0-42-generic #46-Ubuntu SMP
+//     PHP Version: 8.1.0
+//     OpenAPI Spec Version: 0.0.3-oas3
+//     Temp Folder Path: /tmp
+```
+
+## Temporary Files
+
+### Temp Folder Configuration
+
+Set the directory for temporary files:
+
+```php
+// Set temp folder (default is sys_get_temp_dir())
+$config->setTempFolderPath('/custom/temp/path');
+
+// Get temp folder path
+$tempPath = $config->getTempFolderPath();
+```
+
+## Default Configuration
+
+The SDK supports a singleton default configuration:
+
+```php
+// Get default configuration instance
+$config = Configuration::getDefaultConfiguration();
+
+// Modify default configuration
+$config->setHost('https://api.example.com/v1');
+$config->setAccessToken('your-token');
+
+// Set a custom default configuration
+$customConfig = new Configuration();
+$customConfig->setHost('https://custom.example.com/v1');
+Configuration::setDefaultConfiguration($customConfig);
+```
+
+<Note>
+Changes to the default configuration affect all API instances that use it. Consider creating separate `Configuration` instances for different environments.
+</Note>
+
+## Complete Configuration Example
+
+```php
+use D4T\MT5Sdk\Configuration;
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+
+// Create and configure
+$config = new Configuration();
+$config->setHost('https://mt5-server.example.com/v1');
+$config->setAccessToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+$config->setUserAgent('MyTradingApp/2.0.0');
+$config->setDebug(true);
+$config->setDebugFile('/var/log/mt5-debug.log');
+
+// Use configuration with API
+$api = new BasicApi(null, $config);
+
+// Verify configuration
+echo "Host: " . $config->getHost() . "\n";
+echo "User Agent: " . $config->getUserAgent() . "\n";
+echo "Debug Enabled: " . ($config->getDebug() ? 'Yes' : 'No') . "\n";
+```
+
+## Environment-Specific Configuration
+
+Example of managing multiple environments:
+
+```php
+function getConfiguration($environment = 'production') {
+    $config = new Configuration();
+    
+    switch ($environment) {
+        case 'development':
+            $config->setHost('https://dev-mt5.example.com/v1');
+            $config->setDebug(true);
+            $config->setDebugFile('php://output');
+            break;
+            
+        case 'staging':
+            $config->setHost('https://staging-mt5.example.com/v1');
+            $config->setDebug(true);
+            $config->setDebugFile('/var/log/mt5-staging.log');
+            break;
+            
+        case 'production':
+            $config->setHost('https://mt5.example.com/v1');
+            $config->setDebug(false);
+            break;
+    }
+    
+    return $config;
+}
+
+// Usage
+$config = getConfiguration('development');
+$api = new BasicApi(null, $config);
+```
+
+## Configuration Reference
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `host` | string | `/v1` | API base URL |
+| `accessToken` | string | `''` | Bearer token for authentication |
+| `apiKeys` | array | `[]` | API key authentication tokens |
+| `apiKeyPrefixes` | array | `[]` | Prefixes for API keys (e.g., 'Bearer') |
+| `username` | string | `''` | HTTP basic auth username |
+| `password` | string | `''` | HTTP basic auth password |
+| `userAgent` | string | `Swagger-Codegen/1.0.0/php` | HTTP User-Agent header |
+| `debug` | bool | `false` | Enable debug logging |
+| `debugFile` | string | `php://output` | Debug log file path |
+| `tempFolderPath` | string | `sys_get_temp_dir()` | Temporary files directory |
+
+## Next Steps
+
+- [Authentication](/concepts/authentication) - Learn how to obtain and use bearer tokens
+- [Error Handling](/concepts/error-handling) - Handle configuration and API errors

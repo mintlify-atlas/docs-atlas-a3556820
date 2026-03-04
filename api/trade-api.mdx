@@ -1,0 +1,366 @@
+---
+title: TradeApi
+description: Trading operations for managing positions, orders, and deals
+---
+
+The `TradeApi` class provides methods for retrieving trading information and managing open positions.
+
+## Constructor
+
+```php
+public function __construct(
+    ClientInterface $client = null,
+    Configuration $config = null,
+    HeaderSelector $selector = null
+)
+```
+
+Creates a new TradeApi instance.
+
+<ParamField path="client" type="ClientInterface" optional>
+  Guzzle HTTP client instance. If not provided, a new Client will be created.
+</ParamField>
+
+<ParamField path="config" type="Configuration" optional>
+  SDK configuration object. If not provided, a new Configuration will be created.
+</ParamField>
+
+<ParamField path="selector" type="HeaderSelector" optional>
+  Header selector instance. If not provided, a new HeaderSelector will be created.
+</ParamField>
+
+## Methods
+
+### getConfig
+
+Retrieves the current configuration object.
+
+```php
+public function getConfig(): Configuration
+```
+
+<ResponseField name="Configuration" type="Configuration">
+  The current SDK configuration object
+</ResponseField>
+
+---
+
+### positionsUserLoginGet
+
+Retrieves all open positions for a specific user.
+
+```php
+public function positionsUserLoginGet(string $user_login): \D4T\MT5Sdk\Models\Position[]
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch positions for
+</ParamField>
+
+<ResponseField name="Position[]" type="array">
+  Array of Position objects representing all open positions for the user
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When user_login is missing
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\TradeApi;
+
+$tradeApi = new TradeApi();
+
+try {
+    $positions = $tradeApi->positionsUserLoginGet('12345');
+    
+    foreach ($positions as $position) {
+        echo "Symbol: " . $position->getSymbol() . "\n";
+        echo "Volume: " . $position->getVolume() . "\n";
+        echo "Profit: " . $position->getProfit() . "\n";
+        echo "---\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### positionsUserLoginGetWithHttpInfo
+
+Retrieves open positions with HTTP response details.
+
+```php
+public function positionsUserLoginGetWithHttpInfo(string $user_login): array
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch positions for
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\Position[]` - Array of position objects
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When user_login is missing
+
+---
+
+### ordersUserLoginGet
+
+Retrieves orders for a specific user.
+
+```php
+public function ordersUserLoginGet(
+    string $user_login,
+    string $days_back,
+    string $types
+): \D4T\MT5Sdk\Models\Order[]
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch orders for
+</ParamField>
+
+<ParamField path="days_back" type="string" required>
+  Number of days to look back for historical orders
+</ParamField>
+
+<ParamField path="types" type="string" required>
+  Order types to retrieve (comma-separated or specific type identifier)
+</ParamField>
+
+<ResponseField name="Order[]" type="array">
+  Array of Order objects matching the specified criteria
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When required parameters are missing
+
+**Example:**
+
+```php
+try {
+    $orders = $tradeApi->ordersUserLoginGet(
+        '12345',
+        '7',      // Last 7 days
+        'all'     // All order types
+    );
+    
+    foreach ($orders as $order) {
+        echo "Order ID: " . $order->getOrder() . "\n";
+        echo "Symbol: " . $order->getSymbol() . "\n";
+        echo "Type: " . $order->getType() . "\n";
+        echo "Volume: " . $order->getVolume() . "\n";
+        echo "---\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### ordersUserLoginGetWithHttpInfo
+
+Retrieves orders with HTTP response details.
+
+```php
+public function ordersUserLoginGetWithHttpInfo(
+    string $user_login,
+    string $days_back,
+    string $types
+): array
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch orders for
+</ParamField>
+
+<ParamField path="days_back" type="string" required>
+  Number of days to look back
+</ParamField>
+
+<ParamField path="types" type="string" required>
+  Order types to retrieve
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\Order[]` - Array of order objects
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When required parameters are missing
+
+---
+
+### dealsUserLoginGet
+
+Retrieves deal history for a specific user.
+
+```php
+public function dealsUserLoginGet(
+    string $user_login,
+    string $days_back
+): \D4T\MT5Sdk\Models\Deal[]
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch deals for
+</ParamField>
+
+<ParamField path="days_back" type="string" required>
+  Number of days to look back for historical deals
+</ParamField>
+
+<ResponseField name="Deal[]" type="array">
+  Array of Deal objects representing completed trades and transactions
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When required parameters are missing
+
+**Example:**
+
+```php
+try {
+    $deals = $tradeApi->dealsUserLoginGet('12345', '30');
+    
+    foreach ($deals as $deal) {
+        echo "Deal ID: " . $deal->getDeal() . "\n";
+        echo "Order: " . $deal->getOrder() . "\n";
+        echo "Symbol: " . $deal->getSymbol() . "\n";
+        echo "Volume: " . $deal->getVolume() . "\n";
+        echo "Profit: " . $deal->getProfit() . "\n";
+        echo "Time: " . $deal->getTime() . "\n";
+        echo "---\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### dealsUserLoginGetWithHttpInfo
+
+Retrieves deal history with HTTP response details.
+
+```php
+public function dealsUserLoginGetWithHttpInfo(
+    string $user_login,
+    string $days_back
+): array
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch deals for
+</ParamField>
+
+<ParamField path="days_back" type="string" required>
+  Number of days to look back
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\Deal[]` - Array of deal objects
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When required parameters are missing
+
+---
+
+### closeAllUserLoginDelete
+
+Closes all open positions for a specific user (flatten account).
+
+```php
+public function closeAllUserLoginDelete(string $user_login): void
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID whose positions should be closed
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When user_login is missing
+
+**Example:**
+
+```php
+try {
+    $tradeApi->closeAllUserLoginDelete('12345');
+    echo "All positions closed successfully";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error closing positions: " . $e->getMessage();
+}
+```
+
+---
+
+### closeAllUserLoginDeleteWithHttpInfo
+
+Closes all open positions with HTTP response details.
+
+```php
+public function closeAllUserLoginDeleteWithHttpInfo(string $user_login): array
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID whose positions should be closed
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `null` - No response body
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When user_login is missing
+
+---
+
+### Async Method Variants
+
+All methods have async variants with the following naming patterns:
+
+- `methodNameAsync()` - Returns a Promise resolving to the response object
+- `methodNameAsyncWithHttpInfo()` - Returns a Promise resolving to [response, statusCode, headers]
+
+**Example:**
+
+```php
+$promise = $tradeApi->positionsUserLoginGetAsync('12345');
+
+$promise->then(
+    function ($positions) {
+        foreach ($positions as $position) {
+            echo "Position: " . $position->getSymbol() . "\n";
+        }
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage();
+    }
+);
+```

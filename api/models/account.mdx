@@ -1,0 +1,109 @@
+---
+title: Account
+description: Account model representing trading account information in MT5
+---
+
+The `Account` model represents a trading account in the MetaTrader 5 platform, containing balance, equity, margin, and other account-related information.
+
+## Properties
+
+<ResponseField name="login" type="int" required>
+  The account login number (unique identifier for the trading account)
+</ResponseField>
+
+<ResponseField name="balance" type="float">
+  Current account balance
+</ResponseField>
+
+<ResponseField name="profit" type="float">
+  Current profit on open positions
+</ResponseField>
+
+<ResponseField name="blocked_profit" type="float">
+  Profit that is blocked (reserved)
+</ResponseField>
+
+<ResponseField name="blocked_commission" type="float">
+  Commission that is blocked (reserved)
+</ResponseField>
+
+<ResponseField name="leverage" type="float">
+  Account leverage ratio (e.g., 100 for 1:100 leverage)
+</ResponseField>
+
+<ResponseField name="volume" type="float">
+  Total volume of open positions
+</ResponseField>
+
+<ResponseField name="equity" type="float">
+  Account equity (balance + profit)
+</ResponseField>
+
+<ResponseField name="margin" type="float">
+  Margin used by open positions
+</ResponseField>
+
+<ResponseField name="margin_free" type="float">
+  Free margin available for trading
+</ResponseField>
+
+<ResponseField name="margin_level" type="float">
+  Margin level percentage (equity/margin * 100)
+</ResponseField>
+
+## Example
+
+```json
+{
+  "login": 12345678,
+  "balance": 10000.00,
+  "profit": 250.50,
+  "blocked_profit": 0.00,
+  "blocked_commission": 0.00,
+  "leverage": 100,
+  "volume": 2.5,
+  "equity": 10250.50,
+  "margin": 500.00,
+  "margin_free": 9750.50,
+  "margin_level": 2050.10
+}
+```
+
+## Methods
+
+The Account model provides getter and setter methods for all properties:
+
+- `getLogin()` / `setLogin($login)` - Get/set the account login
+- `getBalance()` / `setBalance($balance)` - Get/set the account balance
+- `getProfit()` / `setProfit($profit)` - Get/set the current profit
+- `getBlockedProfit()` / `setBlockedProfit($blocked_profit)` - Get/set blocked profit
+- `getBlockedCommission()` / `setBlockedCommission($blocked_commission)` - Get/set blocked commission
+- `getLeverage()` / `setLeverage($leverage)` - Get/set the leverage
+- `getVolume()` / `setVolume($volume)` - Get/set the total volume
+- `getEquity()` / `setEquity($equity)` - Get/set the equity
+- `getMargin()` / `setMargin($margin)` - Get/set the used margin
+- `getMarginFree()` / `setMarginFree($margin_free)` - Get/set the free margin
+- `getMarginLevel()` / `setMarginLevel($margin_level)` - Get/set the margin level
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Account;
+
+// Create an account instance
+$account = new Account([
+    'login' => 12345678,
+    'balance' => 10000.00,
+    'profit' => 250.50,
+    'leverage' => 100
+]);
+
+// Access properties
+$login = $account->getLogin();
+$equity = $account->getEquity();
+$marginLevel = $account->getMarginLevel();
+
+// Update properties
+$account->setBalance(15000.00);
+$account->setProfit(500.00);
+```

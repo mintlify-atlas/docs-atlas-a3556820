@@ -1,0 +1,452 @@
+---
+title: 'User Management'
+description: 'Complete guide to creating, updating, and managing MT5 user accounts with the UserApi'
+icon: 'users'
+---
+
+## Overview
+
+The UserApi provides comprehensive methods for managing MetaTrader 5 user accounts. This guide covers user creation, updates, deposits, withdrawals, password resets, and account deletion.
+
+## Creating a New User
+
+Use the `userAddPost()` method to create a new trading account.
+
+<Steps>
+  <Step title="Prepare User Data">
+    Create a User model with required account information.
+
+    ```php
+    use D4T\MT5Sdk\MT5Manager\UserApi;
+    use D4T\MT5Sdk\Models\User;
+    use D4T\MT5Sdk\Configuration;
+    use GuzzleHttp\Client;
+
+    // Configure API
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+
+    $userApi = new UserApi(new Client(), $config);
+
+    // Prepare user data
+    $newUser = new User();
+    $newUser->setName('John Doe');
+    $newUser->setEmail('john.doe@example.com');
+    $newUser->setGroup('demo\\demoforex');
+    $newUser->setPassword('SecurePass123!');
+    $newUser->setPasswordInvestor('InvestorPass123!');
+    $newUser->setLeverage(100);
+    ```
+  </Step>
+
+  <Step title="Create the User">
+    Call the `userAddPost()` method to create the account.
+
+    ```php
+    try {
+        $result = $userApi->userAddPost($newUser);
+        
+        echo "User created successfully!\n";
+        echo "Login ID: " . $result->getLogin() . "\n";
+        echo "Status: " . $result->getRetcode() . "\n";
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error creating user: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Updating User Information
+
+Update existing user account details using the `updateUser()` method.
+
+```php
+use D4T\MT5Sdk\Models\User;
+
+$userUpdate = new User();
+$userUpdate->setLogin(12345);
+$userUpdate->setName('John Smith'); // Updated name
+$userUpdate->setPassword('NewSecurePass456!');
+
+try {
+    $userApi->updateUser($userUpdate);
+    echo "User updated successfully!\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Update failed: " . $e->getMessage() . "\n";
+}
+```
+
+## Retrieving User Information
+
+Fetch user details by login ID using `userUserLoginGet()`.
+
+```php
+try {
+    $user = $userApi->userUserLoginGet('12345');
+    
+    echo "User Details:\n";
+    echo "Login: " . $user->getLogin() . "\n";
+    echo "Name: " . $user->getName() . "\n";
+    echo "Email: " . $user->getEmail() . "\n";
+    echo "Group: " . $user->getGroup() . "\n";
+    echo "Leverage: " . $user->getLeverage() . "\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+```
+
+## Account Balance Operations
+
+### Depositing Funds
+
+Add funds to a user account with the `userDepositPost()` method.
+
+<Tabs>
+  <Tab title="Deposit">
+    ```php
+    use D4T\MT5Sdk\Models\BalanceType;
+
+    $deposit = new BalanceType();
+    $deposit->setLogin(12345);
+    $deposit->setAmount(1000.00);
+    $deposit->setType(3); // Balance operation type
+    $deposit->setComment('Initial deposit');
+
+    try {
+        $userApi->userDepositPost($deposit);
+        echo "Deposit successful!\n";
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Deposit failed: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Tab>
+
+  <Tab title="Withdraw">
+    ```php
+    use D4T\MT5Sdk\Models\BalanceType;
+
+    $withdrawal = new BalanceType();
+    $withdrawal->setLogin(12345);
+    $withdrawal->setAmount(500.00);
+    $withdrawal->setType(3);
+    $withdrawal->setComment('Withdrawal request #1234');
+
+    try {
+        $userApi->userWithdrawPost($withdrawal);
+        echo "Withdrawal successful!\n";
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Withdrawal failed: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Password Management
+
+Reset user passwords using the `userResetPwdPost()` method.
+
+```php
+use D4T\MT5Sdk\Models\ResetPwdType;
+
+$passwordReset = new ResetPwdType();
+$passwordReset->setLogin(12345);
+$passwordReset->setPassword('NewPassword789!');
+$passwordReset->setChangeInvestor(0); // 0 = main password, 1 = investor password
+
+try {
+    $userApi->userResetPwdPost($passwordReset);
+    echo "Password reset successfully!\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Password reset failed: " . $e->getMessage() . "\n";
+}
+```
+
+<Note>
+  Set `change_investor` to `1` to reset the investor (read-only) password instead of the main trading password.
+</Note>
+
+## Deleting a User
+
+Remove a user account using `userUserLoginDelete()`.
+
+```php
+try {
+    $userApi->userUserLoginDelete('12345');
+    echo "User deleted successfully!\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Deletion failed: " . $e->getMessage() . "\n";
+}
+```
+
+<Warning>
+  User deletion is permanent and cannot be undone. Ensure you have proper authorization and backup procedures before deleting accounts.
+</Warning>
+
+## Getting Users by Group
+
+Retrieve all users in a specific trading group.
+
+```php
+try {
+    $groupName = 'demo\\demoforex';
+    $cachedLogins = $userApi->usersGroupGet($groupName);
+    
+    echo "Users in group: " . $groupName . "\n";
+    foreach ($cachedLogins->getLogins() as $login) {
+        echo "Login: " . $login . "\n";
+    }
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+```
+
+## Complete Working Examples
+
+<CodeGroup>
+```php Create User Flow
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\UserApi;
+use D4T\MT5Sdk\Models\User;
+use D4T\MT5Sdk\Models\BalanceType;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$userApi = new UserApi(new Client(), $config);
+
+// Step 1: Create new user
+$newUser = new User();
+$newUser->setName('Jane Trader');
+$newUser->setEmail('jane@example.com');
+$newUser->setGroup('demo\\demoforex');
+$newUser->setPassword('SecurePass123!');
+$newUser->setPasswordInvestor('InvestorPass123!');
+$newUser->setLeverage(200);
+
+try {
+    $result = $userApi->userAddPost($newUser);
+    $login = $result->getLogin();
+    echo "User created with login: $login\n";
+    
+    // Step 2: Make initial deposit
+    $deposit = new BalanceType();
+    $deposit->setLogin($login);
+    $deposit->setAmount(10000.00);
+    $deposit->setType(3);
+    $deposit->setComment('Initial deposit');
+    
+    $userApi->userDepositPost($deposit);
+    echo "Initial deposit of $10,000 completed\n";
+    
+    // Step 3: Verify user details
+    $user = $userApi->userUserLoginGet($login);
+    echo "User verified: " . $user->getName() . "\n";
+    echo "Email: " . $user->getEmail() . "\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+```
+
+```php Bulk User Operations
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\UserApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+function initUserApi() {
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+    return new UserApi(new Client(), $config);
+}
+
+function getAllGroupUsers($groupName) {
+    $userApi = initUserApi();
+    
+    try {
+        $cachedLogins = $userApi->usersGroupGet($groupName);
+        return $cachedLogins->getLogins();
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error fetching users: " . $e->getMessage() . "\n";
+        return [];
+    }
+}
+
+function getUserDetails($login) {
+    $userApi = initUserApi();
+    
+    try {
+        return $userApi->userUserLoginGet($login);
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error fetching user $login: " . $e->getMessage() . "\n";
+        return null;
+    }
+}
+
+// Usage: Get all users in a group and display their details
+$groupName = 'demo\\demoforex';
+$logins = getAllGroupUsers($groupName);
+
+echo "Found " . count($logins) . " users in group $groupName\n";
+
+foreach ($logins as $login) {
+    $user = getUserDetails($login);
+    if ($user) {
+        echo "Login: $login | Name: " . $user->getName() . 
+             " | Email: " . $user->getEmail() . "\n";
+    }
+}
+```
+
+```php User Management Class
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\UserApi;
+use D4T\MT5Sdk\Models\User;
+use D4T\MT5Sdk\Models\BalanceType;
+use D4T\MT5Sdk\Models\ResetPwdType;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+class MT5UserManager {
+    private $userApi;
+    
+    public function __construct($host, $token) {
+        $config = Configuration::getDefaultConfiguration()
+            ->setHost($host)
+            ->setAccessToken($token);
+        $this->userApi = new UserApi(new Client(), $config);
+    }
+    
+    public function createUser($name, $email, $group, $password, $leverage = 100) {
+        $user = new User();
+        $user->setName($name);
+        $user->setEmail($email);
+        $user->setGroup($group);
+        $user->setPassword($password);
+        $user->setPasswordInvestor($password);
+        $user->setLeverage($leverage);
+        
+        try {
+            $result = $this->userApi->userAddPost($user);
+            return ['success' => true, 'login' => $result->getLogin()];
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    public function deposit($login, $amount, $comment = '') {
+        $deposit = new BalanceType();
+        $deposit->setLogin($login);
+        $deposit->setAmount($amount);
+        $deposit->setType(3);
+        $deposit->setComment($comment);
+        
+        try {
+            $this->userApi->userDepositPost($deposit);
+            return ['success' => true];
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    public function withdraw($login, $amount, $comment = '') {
+        $withdrawal = new BalanceType();
+        $withdrawal->setLogin($login);
+        $withdrawal->setAmount($amount);
+        $withdrawal->setType(3);
+        $withdrawal->setComment($comment);
+        
+        try {
+            $this->userApi->userWithdrawPost($withdrawal);
+            return ['success' => true];
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    public function resetPassword($login, $newPassword, $isInvestor = false) {
+        $reset = new ResetPwdType();
+        $reset->setLogin($login);
+        $reset->setPassword($newPassword);
+        $reset->setChangeInvestor($isInvestor ? 1 : 0);
+        
+        try {
+            $this->userApi->userResetPwdPost($reset);
+            return ['success' => true];
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+}
+
+// Usage
+$manager = new MT5UserManager(
+    'https://your-mt5-server.com/api',
+    'your_bearer_token'
+);
+
+$result = $manager->createUser(
+    'Alice Trader',
+    'alice@example.com',
+    'demo\\demoforex',
+    'SecurePass123!',
+    150
+);
+
+if ($result['success']) {
+    echo "User created: " . $result['login'] . "\n";
+    $manager->deposit($result['login'], 5000, 'Welcome bonus');
+}
+```
+</CodeGroup>
+
+## API Methods Reference
+
+| Method | Description | Returns |
+|--------|-------------|----------|
+| `userAddPost($user)` | Create a new user account | UserReturnType |
+| `updateUser($user)` | Update existing user information | void |
+| `userUserLoginGet($login)` | Retrieve user details by login | User |
+| `userDepositPost($balance)` | Deposit funds to account | void |
+| `userWithdrawPost($balance)` | Withdraw funds from account | void |
+| `userResetPwdPost($reset)` | Reset user password | void |
+| `userUserLoginDelete($login)` | Delete a user account | void |
+| `usersGroupGet($group)` | Get all users in a group | CachedLogins |
+
+## Best Practices
+
+1. **Password Security**: Use strong passwords with uppercase, lowercase, numbers, and special characters
+2. **Validation**: Validate email addresses and user input before creating accounts
+3. **Balance Operations**: Always include descriptive comments for deposits and withdrawals for audit trails
+4. **Error Handling**: Implement comprehensive error handling for all user operations
+5. **Group Naming**: Use proper group path format with escaped backslashes (e.g., `demo\\demoforex`)
+6. **Leverage Limits**: Set appropriate leverage based on user experience and risk management policies
+
+<Warning>
+  When performing balance operations (deposits/withdrawals), ensure you have proper authorization and compliance with financial regulations. All transactions should be logged for audit purposes.
+</Warning>
+
+## Next Steps
+
+- [Account Management](/guides/account-management) - Retrieve account information and balances
+- [Trading Operations](/guides/trading-operations) - Manage positions, orders, and deals
+- [Market Data](/guides/market-data) - Access trading symbols and group configurations

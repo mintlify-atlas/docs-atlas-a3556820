@@ -1,0 +1,176 @@
+---
+title: Symbol
+description: Symbol model representing trading instrument configuration in MT5
+---
+
+The `Symbol` model represents a trading instrument (symbol) configuration in the MetaTrader 5 platform, including pricing, volume limits, swap rates, and trading sessions.
+
+## Properties
+
+<ResponseField name="name" type="string">
+  Symbol name (e.g., "EURUSD", "GBPUSD", "XAUUSD")
+</ResponseField>
+
+<ResponseField name="path" type="string">
+  Symbol path in the symbols tree
+</ResponseField>
+
+<ResponseField name="currency_base" type="string">
+  Base currency of the symbol (e.g., "EUR" for EURUSD)
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Human-readable description of the symbol
+</ResponseField>
+
+<ResponseField name="spread" type="float">
+  Current spread in points
+</ResponseField>
+
+<ResponseField name="swap_mode" type="int">
+  Swap calculation mode
+</ResponseField>
+
+<ResponseField name="swap_long" type="float">
+  Swap rate for long positions
+</ResponseField>
+
+<ResponseField name="swap_short" type="float">
+  Swap rate for short positions
+</ResponseField>
+
+<ResponseField name="vol_min" type="int">
+  Minimum volume (lot size) for trading
+</ResponseField>
+
+<ResponseField name="vol_max" type="int">
+  Maximum volume (lot size) for trading
+</ResponseField>
+
+<ResponseField name="vol_limit" type="int">
+  Maximum volume limit for total positions
+</ResponseField>
+
+<ResponseField name="vol_step" type="int">
+  Volume step (increment) for trading
+</ResponseField>
+
+<ResponseField name="tick_value" type="float">
+  Value of one tick in the deposit currency
+</ResponseField>
+
+<ResponseField name="tick_size" type="float">
+  Minimum price change (tick size)
+</ResponseField>
+
+<ResponseField name="contract_size" type="float">
+  Contract size (e.g., 100000 for standard forex lot)
+</ResponseField>
+
+<ResponseField name="calc_mode" type="int">
+  Margin calculation mode
+</ResponseField>
+
+<ResponseField name="digits" type="int">
+  Number of decimal places in the price quote
+</ResponseField>
+
+<ResponseField name="trade_sessions" type="array">
+  Array of trading session configurations (SymbolTradeSessions objects)
+</ResponseField>
+
+## Example
+
+```json
+{
+  "name": "EURUSD",
+  "path": "Forex\\Major",
+  "currency_base": "EUR",
+  "description": "Euro vs US Dollar",
+  "spread": 10,
+  "swap_mode": 0,
+  "swap_long": -0.5,
+  "swap_short": 0.3,
+  "vol_min": 1000,
+  "vol_max": 10000000,
+  "vol_limit": 50000000,
+  "vol_step": 1000,
+  "tick_value": 1.0,
+  "tick_size": 0.00001,
+  "contract_size": 100000,
+  "calc_mode": 0,
+  "digits": 5,
+  "trade_sessions": []
+}
+```
+
+## Volume Values
+
+Volume values in MT5 are typically represented in hundredths of a lot:
+- `1000` = 0.01 lot (1 micro lot)
+- `10000` = 0.10 lot (10 micro lots)
+- `100000` = 1.00 lot (1 standard lot)
+
+## Digits and Precision
+
+The `digits` field determines the price precision:
+- `5` - For most forex pairs (e.g., 1.08501)
+- `3` - For JPY pairs (e.g., 150.123)
+- `2` - For some metals and commodities
+
+## Methods
+
+The Symbol model provides getter and setter methods for all properties:
+
+- `getName()` / `setName($name)` - Get/set the symbol name
+- `getPath()` / `setPath($path)` - Get/set the symbol path
+- `getCurrencyBase()` / `setCurrencyBase($currency_base)` - Get/set base currency
+- `getDescription()` / `setDescription($description)` - Get/set description
+- `getSpread()` / `setSpread($spread)` - Get/set the spread
+- `getSwapMode()` / `setSwapMode($swap_mode)` - Get/set swap mode
+- `getSwapLong()` / `setSwapLong($swap_long)` - Get/set long swap
+- `getSwapShort()` / `setSwapShort($swap_short)` - Get/set short swap
+- `getVolMin()` / `setVolMin($vol_min)` - Get/set minimum volume
+- `getVolMax()` / `setVolMax($vol_max)` - Get/set maximum volume
+- `getVolLimit()` / `setVolLimit($vol_limit)` - Get/set volume limit
+- `getVolStep()` / `setVolStep($vol_step)` - Get/set volume step
+- `getTickValue()` / `setTickValue($tick_value)` - Get/set tick value
+- `getTickSize()` / `setTickSize($tick_size)` - Get/set tick size
+- `getContractSize()` / `setContractSize($contract_size)` - Get/set contract size
+- `getCalcMode()` / `setCalcMode($calc_mode)` - Get/set calculation mode
+- `getDigits()` / `setDigits($digits)` - Get/set digits
+- `getTradeSessions()` / `setTradeSessions($trade_sessions)` - Get/set trade sessions
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Symbol;
+
+// Create a symbol instance
+$symbol = new Symbol([
+    'name' => 'EURUSD',
+    'path' => 'Forex\\\\Major',
+    'currency_base' => 'EUR',
+    'description' => 'Euro vs US Dollar',
+    'spread' => 10,
+    'digits' => 5,
+    'contract_size' => 100000
+]);
+
+// Access properties
+$name = $symbol->getName();
+$spread = $symbol->getSpread();
+$contractSize = $symbol->getContractSize();
+
+// Update properties
+$symbol->setSpread(15);
+$symbol->setSwapLong(-0.6);
+```
+
+## Common Symbol Categories
+
+- **Forex** - Currency pairs (e.g., EURUSD, GBPUSD)
+- **Metals** - Precious metals (e.g., XAUUSD, XAGUSD)
+- **Indices** - Stock indices (e.g., US30, NAS100)
+- **Commodities** - Oil, gas, etc. (e.g., USOIL, UKOUIL)
+- **Crypto** - Cryptocurrencies (e.g., BTCUSD, ETHUSD)

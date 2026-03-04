@@ -1,0 +1,159 @@
+---
+title: Authentication
+description: Learn how to authenticate with the MT5 Manager API using bearer tokens
+---
+
+## Overview
+
+The MT5 Manager API uses bearer token authentication. You must first initialize a connection to obtain a token, then use that token for all subsequent API calls.
+
+## Authentication Flow
+
+The authentication process follows these steps:
+
+1. Call the `/init/` endpoint with your MT5 server credentials
+2. Receive a bearer token in the response
+3. Configure the SDK with the token
+4. Make authenticated API calls
+
+### Step 1: Initialize Connection
+
+Use the `initGet()` method to authenticate and obtain a token:
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\Configuration;
+
+// Create configuration and API instance
+$config = new Configuration();
+$config->setHost('https://your-mt5-server.com/v1');
+
+$api = new BasicApi(null, $config);
+
+// Initialize connection and get token
+try {
+    $result = $api->initGet(
+        $server = '127.0.0.1:443',    // MT5 server IP with port
+        $login = 'manager_login',      // Manager login
+        $password = 'manager_password', // Manager password
+        $timeout = 5000                 // Optional timeout in milliseconds
+    );
+    
+    $token = $result->getToken();
+    echo "Authentication successful! Token: " . $token;
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Authentication failed: " . $e->getMessage();
+}
+```
+
+<ParamField path="server" type="string" required>
+  MetaTrader5 server IP with port (e.g., `127.0.0.1:443`)
+</ParamField>
+
+<ParamField path="login" type="string" required>
+  MetaTrader manager login credential
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  MetaTrader manager password
+</ParamField>
+
+<ParamField path="timeout" type="float">
+  Connection timeout in milliseconds (optional)
+</ParamField>
+
+### Step 2: Configure SDK with Token
+
+Once you receive the token, configure it for subsequent API calls:
+
+```php
+// Set the access token for bearer authentication
+$config->setAccessToken($token);
+
+// Now you can make authenticated API calls
+$api = new BasicApi(null, $config);
+```
+
+<Info>
+The token is automatically included in the `Authorization` header as `Bearer {token}` for all authenticated endpoints.
+</Info>
+
+## Bearer Token Usage
+
+After configuration, the SDK automatically adds the bearer token to all API requests. Here's how it works internally (from `BasicApi.php:616-619`):
+
+```php
+// This endpoint requires Bearer token
+if ($this->config->getAccessToken() !== null) {
+    $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+}
+```
+
+## Complete Example
+
+Here's a full workflow from authentication to making an API call:
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\Configuration;
+use D4T\MT5Sdk\ApiException;
+
+// Step 1: Create configuration
+$config = new Configuration();
+$config->setHost('https://your-mt5-server.com/v1');
+
+// Step 2: Initialize and authenticate
+$api = new BasicApi(null, $config);
+
+try {
+    // Get authentication token
+    $initResult = $api->initGet('127.0.0.1:443', 'manager_login', 'manager_password');
+    $token = $initResult->getToken();
+    
+    // Step 3: Configure SDK with token
+    $config->setAccessToken($token);
+    
+    // Step 4: Make authenticated requests
+    $pingResult = $api->pingGet();
+    echo "Ping successful: " . $pingResult->getMessage();
+    
+} catch (ApiException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+    echo "HTTP Code: " . $e->getCode() . "\n";
+}
+```
+
+<Warning>
+Store your bearer token securely. Never commit tokens to version control or expose them in client-side code.
+</Warning>
+
+## Token Management
+
+The `Configuration` class provides methods for managing access tokens:
+
+```php
+// Set access token
+$config->setAccessToken($token);
+
+// Get current access token
+$currentToken = $config->getAccessToken();
+
+// Check if token is set
+if ($config->getAccessToken() !== null) {
+    // Token is configured
+}
+```
+
+## Security Best Practices
+
+<Note>
+- Store tokens in environment variables or secure configuration files
+- Use HTTPS for all API communications
+- Implement token refresh logic if your tokens expire
+- Never log or display tokens in production environments
+</Note>
+
+## Next Steps
+
+- [Configuration](/concepts/configuration) - Learn about SDK configuration options
+- [Error Handling](/concepts/error-handling) - Handle authentication errors properly

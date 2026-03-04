@@ -1,0 +1,158 @@
+---
+title: User
+description: User model representing client/trader account information in MT5
+---
+
+The `User` model represents a client or trader in the MetaTrader 5 platform, containing personal information, credentials, and account settings.
+
+## Properties
+
+<ResponseField name="login" type="int">
+  The user's login number (unique identifier)
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The user's full name
+</ResponseField>
+
+<ResponseField name="group" type="string" required>
+  The trading group the user belongs to
+</ResponseField>
+
+<ResponseField name="leverage" type="int">
+  User's leverage ratio (e.g., 100 for 1:100 leverage)
+</ResponseField>
+
+<ResponseField name="password" type="string">
+  User's trading password
+</ResponseField>
+
+<ResponseField name="password_investor" type="string">
+  User's investor (read-only) password
+</ResponseField>
+
+<ResponseField name="rights" type="int">
+  User access rights (bitfield)
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  User's email address
+</ResponseField>
+
+<ResponseField name="city" type="string">
+  User's city
+</ResponseField>
+
+<ResponseField name="phone" type="string">
+  User's phone number
+</ResponseField>
+
+<ResponseField name="phone_password" type="string">
+  Password for phone trading
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  User account status
+</ResponseField>
+
+<ResponseField name="state" type="string">
+  User's state/province
+</ResponseField>
+
+<ResponseField name="address" type="string">
+  User's street address
+</ResponseField>
+
+<ResponseField name="comment" type="string">
+  Additional comments or notes about the user
+</ResponseField>
+
+<ResponseField name="zipcode" type="string">
+  User's postal/ZIP code
+</ResponseField>
+
+<ResponseField name="agent_account" type="int">
+  Agent account number if user has an agent
+</ResponseField>
+
+<ResponseField name="id_number" type="string">
+  User's identification number
+</ResponseField>
+
+<ResponseField name="reg_date" type="string">
+  Registration date
+</ResponseField>
+
+## Example
+
+```json
+{
+  "login": 12345678,
+  "name": "John Doe",
+  "group": "demo\\standard",
+  "leverage": 100,
+  "password": "SecurePassword123",
+  "password_investor": "InvestorPass456",
+  "rights": 1,
+  "email": "john.doe@example.com",
+  "city": "New York",
+  "phone": "+1234567890",
+  "phone_password": "PhonePass789",
+  "status": "active",
+  "state": "NY",
+  "address": "123 Main Street",
+  "comment": "VIP client",
+  "zipcode": "10001",
+  "agent_account": 0,
+  "id_number": "ID123456",
+  "reg_date": "2024-01-15T10:30:00Z"
+}
+```
+
+## Methods
+
+The User model provides getter and setter methods for all properties:
+
+- `getLogin()` / `setLogin($login)` - Get/set the user login
+- `getName()` / `setName($name)` - Get/set the user name
+- `getGroup()` / `setGroup($group)` - Get/set the trading group
+- `getLeverage()` / `setLeverage($leverage)` - Get/set the leverage
+- `getPassword()` / `setPassword($password)` - Get/set the password
+- `getPasswordInvestor()` / `setPasswordInvestor($password_investor)` - Get/set investor password
+- `getRights()` / `setRights($rights)` - Get/set user rights
+- `getEmail()` / `setEmail($email)` - Get/set the email
+- `getCity()` / `setCity($city)` - Get/set the city
+- `getPhone()` / `setPhone($phone)` - Get/set the phone number
+- `getPhonePassword()` / `setPhonePassword($phone_password)` - Get/set phone password
+- `getStatus()` / `setStatus($status)` - Get/set the status
+- `getState()` / `setState($state)` - Get/set the state
+- `getAddress()` / `setAddress($address)` - Get/set the address
+- `getComment()` / `setComment($comment)` - Get/set comments
+- `getZipcode()` / `setZipcode($zipcode)` - Get/set the zipcode
+- `getAgentAccount()` / `setAgentAccount($agent_account)` - Get/set agent account
+- `getIdNumber()` / `setIdNumber($id_number)` - Get/set ID number
+- `getRegDate()` / `setRegDate($reg_date)` - Get/set registration date
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\User;
+
+// Create a user instance
+$user = new User([
+    'name' => 'John Doe',
+    'group' => 'demo\\\\standard',
+    'email' => 'john.doe@example.com',
+    'leverage' => 100,
+    'city' => 'New York'
+]);
+
+// Access properties
+$name = $user->getName();
+$email = $user->getEmail();
+$group = $user->getGroup();
+
+// Update properties
+$user->setLeverage(200);
+$user->setPhone('+1234567890');
+```

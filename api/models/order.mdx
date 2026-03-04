@@ -1,0 +1,80 @@
+---
+title: Order
+description: Order model representing pending or executed orders in MT5
+---
+
+The `Order` model represents a trading order in the MetaTrader 5 platform.
+
+## Properties
+
+<ResponseField name="symbol" type="string">
+  Trading symbol for the order (e.g., "EURUSD", "GBPUSD")
+</ResponseField>
+
+<ResponseField name="type" type="int">
+  Order type (numeric value)
+</ResponseField>
+
+<ResponseField name="type_str" type="string">
+  Order type as a human-readable string
+</ResponseField>
+
+<ResponseField name="profit" type="float">
+  Current profit/loss on the order
+</ResponseField>
+
+## Example
+
+```json
+{
+  "symbol": "EURUSD",
+  "type": 0,
+  "type_str": "buy",
+  "profit": 125.50
+}
+```
+
+## Order Types
+
+The `type` field represents different order types in MT5. Common values include:
+
+| Value | Description |
+|-------|-------------|
+| 0     | Buy         |
+| 1     | Sell        |
+| 2     | Buy Limit   |
+| 3     | Sell Limit  |
+| 4     | Buy Stop    |
+| 5     | Sell Stop   |
+
+## Methods
+
+The Order model provides getter and setter methods for all properties:
+
+- `getSymbol()` / `setSymbol($symbol)` - Get/set the trading symbol
+- `getType()` / `setType($type)` - Get/set the order type (numeric)
+- `getTypeStr()` / `setTypeStr($type_str)` - Get/set the order type (string)
+- `getProfit()` / `setProfit($profit)` - Get/set the current profit
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Order;
+
+// Create an order instance
+$order = new Order([
+    'symbol' => 'EURUSD',
+    'type' => 0,
+    'type_str' => 'buy',
+    'profit' => 125.50
+]);
+
+// Access properties
+$symbol = $order->getSymbol();
+$type = $order->getType();
+$profit = $order->getProfit();
+
+// Update properties
+$order->setProfit(150.00);
+$order->setTypeStr('sell');
+```

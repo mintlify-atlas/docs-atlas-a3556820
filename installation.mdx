@@ -1,0 +1,166 @@
+---
+title: Installation
+description: Install the MT5 Manager API PHP SDK in your project
+---
+
+The MT5 Manager API PHP SDK is a REST API client for managing MetaTrader 5 servers. This guide will walk you through installing the SDK using Composer.
+
+## Requirements
+
+Before installing the SDK, ensure your system meets the following requirements:
+
+- **PHP**: 7.4 or higher (including PHP 8.0+)
+- **PHP Extensions**:
+  - `ext-curl` - For making HTTP requests
+  - `ext-json` - For JSON parsing
+  - `ext-mbstring` - For multibyte string handling
+- **Composer**: For dependency management
+
+<Note>
+  The SDK uses Guzzle HTTP client for making API requests and supports both synchronous and asynchronous operations.
+</Note>
+
+## Installation Methods
+
+You can install the MT5 Manager API PHP SDK using either of the following methods:
+
+<Steps>
+  <Step title="Method 1: Using Composer Require (Recommended)">
+    Run the following command in your project directory:
+
+    ```bash
+    composer require dev4traders/mt5-manager-api:*@dev
+    ```
+
+    This will automatically download the SDK and its dependencies.
+  </Step>
+
+  <Step title="Method 2: Manual composer.json Configuration">
+    Add the following to your `composer.json` file:
+
+    ```json
+    {
+      "repositories": [
+        {
+          "type": "git",
+          "url": "https://github.com/dev4traders/mt5-manager-api.git"
+        }
+      ],
+      "require": {
+        "dev4traders/mt5-manager-api": "*@dev"
+      }
+    }
+    ```
+
+    Then run:
+
+    ```bash
+    composer install
+    ```
+  </Step>
+</Steps>
+
+## Verify Installation
+
+After installation, verify that the SDK is properly installed by checking your `vendor` directory:
+
+```bash
+ls vendor/dev4traders/mt5-manager-api
+```
+
+You should see the SDK files including:
+- `lib/` - Core SDK classes
+- `composer.json` - Package configuration
+- `autoload.php` - Composer autoloader
+
+## Autoloading
+
+The SDK uses PSR-4 autoloading. Include Composer's autoloader in your PHP file:
+
+```php
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+```
+
+Once the autoloader is included, you can start using any SDK class:
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\Configuration;
+```
+
+## Dependencies
+
+The SDK automatically installs the following dependencies:
+
+<CodeGroup>
+```json Runtime Dependencies
+{
+  "guzzlehttp/guzzle": "^7.3",
+  "guzzlehttp/psr7": "^1.7 || ^2.0"
+}
+```
+
+```json Development Dependencies
+{
+  "phpunit/phpunit": "^8.0 || ^9.0",
+  "friendsofphp/php-cs-fixer": "^3.5"
+}
+```
+</CodeGroup>
+
+## Troubleshooting
+
+<Accordion title="Missing PHP extensions">
+  If you encounter errors about missing PHP extensions, install them using:
+
+  **Ubuntu/Debian:**
+  ```bash
+  sudo apt-get install php-curl php-json php-mbstring
+  ```
+
+  **macOS (using Homebrew):**
+  ```bash
+  brew install php
+  ```
+
+  **Windows:**
+  Enable the extensions in your `php.ini` file by uncommenting:
+  ```ini
+  extension=curl
+  extension=json
+  extension=mbstring
+  ```
+</Accordion>
+
+<Accordion title="Composer not found">
+  Install Composer globally:
+
+  ```bash
+  curl -sS https://getcomposer.org/installer | php
+  sudo mv composer.phar /usr/local/bin/composer
+  ```
+
+  Verify installation:
+  ```bash
+  composer --version
+  ```
+</Accordion>
+
+<Accordion title="Version conflicts">
+  If you experience dependency conflicts, try:
+
+  ```bash
+  composer update --with-dependencies
+  ```
+
+  Or clear Composer's cache:
+  ```bash
+  composer clear-cache
+  composer install
+  ```
+</Accordion>
+
+## Next Steps
+
+Now that you have the SDK installed, proceed to the [Quickstart Guide](/quickstart) to learn how to connect to your MT5 server and make your first API call.

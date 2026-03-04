@@ -1,0 +1,340 @@
+---
+title: BasicApi
+description: Basic API operations for initializing and managing MT5 connections
+---
+
+The `BasicApi` class provides fundamental operations for connecting to and managing MetaTrader 5 server connections.
+
+## Constructor
+
+```php
+public function __construct(
+    ClientInterface $client = null,
+    Configuration $config = null,
+    HeaderSelector $selector = null
+)
+```
+
+Creates a new BasicApi instance.
+
+<ParamField path="client" type="ClientInterface" optional>
+  Guzzle HTTP client instance. If not provided, a new Client will be created.
+</ParamField>
+
+<ParamField path="config" type="Configuration" optional>
+  SDK configuration object. If not provided, a new Configuration will be created.
+</ParamField>
+
+<ParamField path="selector" type="HeaderSelector" optional>
+  Header selector instance. If not provided, a new HeaderSelector will be created.
+</ParamField>
+
+## Methods
+
+### getConfig
+
+Retrieves the current configuration object.
+
+```php
+public function getConfig(): Configuration
+```
+
+<ResponseField name="Configuration" type="Configuration">
+  The current SDK configuration object
+</ResponseField>
+
+---
+
+### initGet
+
+Initializes a connection to the MetaTrader 5 server and returns an authentication token.
+
+```php
+public function initGet(
+    string $server,
+    string $login,
+    string $password,
+    float $timeout = null
+): \D4T\MT5Sdk\Models\InitReturnType
+```
+
+<ParamField path="server" type="string" required>
+  MetaTrader5 server IP with port. Example: `127.0.0.1:443`
+</ParamField>
+
+<ParamField path="login" type="string" required>
+  MetaTrader manager login
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  MetaTrader manager password
+</ParamField>
+
+<ParamField path="timeout" type="float" optional>
+  Connection timeout in milliseconds
+</ParamField>
+
+<ResponseField name="InitReturnType" type="\D4T\MT5Sdk\Models\InitReturnType">
+  Object containing the authentication token and connection details
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When required parameters are missing
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+
+$basicApi = new BasicApi();
+
+try {
+    $result = $basicApi->initGet(
+        '127.0.0.1:443',
+        'manager_login',
+        'manager_password',
+        5000
+    );
+    
+    echo "Token: " . $result->getToken();
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "API Error: " . $e->getMessage();
+}
+```
+
+---
+
+### initGetWithHttpInfo
+
+Initializes a connection and returns response with HTTP information.
+
+```php
+public function initGetWithHttpInfo(
+    string $server,
+    string $login,
+    string $password,
+    float $timeout = null
+): array
+```
+
+<ParamField path="server" type="string" required>
+  MetaTrader5 server IP with port. Example: `127.0.0.1:443`
+</ParamField>
+
+<ParamField path="login" type="string" required>
+  MetaTrader manager login
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  MetaTrader manager password
+</ParamField>
+
+<ParamField path="timeout" type="float" optional>
+  Connection timeout in milliseconds
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\InitReturnType` - The response object
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When required parameters are missing
+
+---
+
+### initGetAsync
+
+Asynchronously initializes a connection to the MetaTrader 5 server.
+
+```php
+public function initGetAsync(
+    string $server,
+    string $login,
+    string $password,
+    float $timeout = null
+): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ParamField path="server" type="string" required>
+  MetaTrader5 server IP with port. Example: `127.0.0.1:443`
+</ParamField>
+
+<ParamField path="login" type="string" required>
+  MetaTrader manager login
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  MetaTrader manager password
+</ParamField>
+
+<ParamField path="timeout" type="float" optional>
+  Connection timeout in milliseconds
+</ParamField>
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to `\D4T\MT5Sdk\Models\InitReturnType`
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - When required parameters are missing
+
+**Example:**
+
+```php
+$promise = $basicApi->initGetAsync(
+    '127.0.0.1:443',
+    'manager_login',
+    'manager_password'
+);
+
+$promise->then(
+    function ($result) {
+        echo "Connected! Token: " . $result->getToken();
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage();
+    }
+);
+```
+
+---
+
+### initGetAsyncWithHttpInfo
+
+Asynchronously initializes a connection with HTTP information.
+
+```php
+public function initGetAsyncWithHttpInfo(
+    string $server,
+    string $login,
+    string $password,
+    float $timeout = null
+): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ParamField path="server" type="string" required>
+  MetaTrader5 server IP with port. Example: `127.0.0.1:443`
+</ParamField>
+
+<ParamField path="login" type="string" required>
+  MetaTrader manager login
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  MetaTrader manager password
+</ParamField>
+
+<ParamField path="timeout" type="float" optional>
+  Connection timeout in milliseconds
+</ParamField>
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to an array containing response object, status code, and headers
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - When required parameters are missing
+
+---
+
+### pingGet
+
+Pings the API to verify connectivity.
+
+```php
+public function pingGet(): \D4T\MT5Sdk\Models\PingReturnType
+```
+
+<ResponseField name="PingReturnType" type="\D4T\MT5Sdk\Models\PingReturnType">
+  Object containing ping response data
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (including 400 Bad Request)
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+try {
+    $ping = $basicApi->pingGet();
+    echo "Server is online";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Server is offline or unreachable";
+}
+```
+
+---
+
+### pingGetWithHttpInfo
+
+Pings the API and returns response with HTTP information.
+
+```php
+public function pingGetWithHttpInfo(): array
+```
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\PingReturnType` - The response object
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - On invalid arguments
+
+---
+
+### pingGetAsync
+
+Asynchronously pings the API.
+
+```php
+public function pingGetAsync(): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to `\D4T\MT5Sdk\Models\PingReturnType`
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+$promise = $basicApi->pingGetAsync();
+
+$promise->then(
+    function ($result) {
+        echo "Ping successful";
+    },
+    function ($exception) {
+        echo "Ping failed";
+    }
+);
+```
+
+---
+
+### pingGetAsyncWithHttpInfo
+
+Asynchronously pings the API with HTTP information.
+
+```php
+public function pingGetAsyncWithHttpInfo(): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to an array containing response object, status code, and headers
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - On invalid arguments

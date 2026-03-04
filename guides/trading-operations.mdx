@@ -1,0 +1,498 @@
+---
+title: 'Trading Operations'
+description: 'Manage positions, orders, and deals using the MT5 TradeApi'
+icon: 'chart-line'
+---
+
+## Overview
+
+The TradeApi provides methods to retrieve and manage trading operations in MetaTrader 5. This guide covers how to fetch user positions, orders, deals, and close all open positions.
+
+## Getting User Positions
+
+Retrieve all open positions for a specific user with the `positionsUserLoginGet()` method.
+
+<Steps>
+  <Step title="Initialize the TradeApi">
+    Set up the TradeApi client with your configuration.
+
+    ```php
+    use D4T\MT5Sdk\MT5Manager\TradeApi;
+    use D4T\MT5Sdk\Configuration;
+    use GuzzleHttp\Client;
+
+    $config = Configuration::getDefaultConfiguration()
+        ->setHost('https://your-mt5-server.com/api')
+        ->setAccessToken('your_bearer_token');
+
+    $tradeApi = new TradeApi(new Client(), $config);
+    ```
+  </Step>
+
+  <Step title="Fetch Open Positions">
+    Get all currently open positions for a user.
+
+    ```php
+    try {
+        $userLogin = '12345';
+        $positions = $tradeApi->positionsUserLoginGet($userLogin);
+        
+        echo "Found " . count($positions) . " open positions\n";
+        
+        foreach ($positions as $position) {
+            echo "Symbol: " . $position->getSymbol() . "\n";
+            echo "Volume: " . $position->getVolume() . "\n";
+            echo "Open Price: " . $position->getPriceOpen() . "\n";
+            echo "Current Price: " . $position->getPriceCurrent() . "\n";
+            echo "Profit: $" . $position->getProfit() . "\n";
+            echo "---\n";
+        }
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Retrieving Orders
+
+Fetch user orders (pending and executed) using the `ordersUserLoginGet()` method.
+
+```php
+try {
+    $userLogin = '12345';
+    $daysBack = '7'; // Last 7 days
+    $types = 'all'; // Order types to retrieve
+    
+    $orders = $tradeApi->ordersUserLoginGet($userLogin, $daysBack, $types);
+    
+    foreach ($orders as $order) {
+        echo "Order #" . $order->getOrder() . "\n";
+        echo "Symbol: " . $order->getSymbol() . "\n";
+        echo "Type: " . $order->getType() . "\n";
+        echo "Volume: " . $order->getVolume() . "\n";
+        echo "Price: " . $order->getPrice() . "\n";
+        echo "State: " . $order->getState() . "\n";
+        echo "Time: " . date('Y-m-d H:i:s', $order->getTimeSetup()) . "\n";
+        echo "---\n";
+    }
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error fetching orders: " . $e->getMessage() . "\n";
+}
+```
+
+<Note>
+  The `types` parameter accepts values like `all`, `buy`, `sell`, `limit`, `stop`, etc. Check your MT5 server documentation for supported order types.
+</Note>
+
+## Getting Trade Deals
+
+Retrieve executed deals (trade history) with the `dealsUserLoginGet()` method.
+
+```php
+try {
+    $userLogin = '12345';
+    $daysBack = '30'; // Last 30 days
+    
+    $deals = $tradeApi->dealsUserLoginGet($userLogin, $daysBack);
+    
+    $totalProfit = 0;
+    
+    foreach ($deals as $deal) {
+        echo "Deal #" . $deal->getDeal() . "\n";
+        echo "Symbol: " . $deal->getSymbol() . "\n";
+        echo "Action: " . $deal->getAction() . "\n";
+        echo "Volume: " . $deal->getVolume() . "\n";
+        echo "Price: " . $deal->getPrice() . "\n";
+        echo "Profit: $" . $deal->getProfit() . "\n";
+        echo "Commission: $" . $deal->getCommission() . "\n";
+        echo "Time: " . date('Y-m-d H:i:s', $deal->getTime()) . "\n";
+        echo "---\n";
+        
+        $totalProfit += $deal->getProfit();
+    }
+    
+    echo "Total Profit/Loss: $" . number_format($totalProfit, 2) . "\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error fetching deals: " . $e->getMessage() . "\n";
+}
+```
+
+## Closing All Positions
+
+Close all open positions for a user using the `closeAllUserLoginDelete()` method.
+
+```php
+try {
+    $userLogin = '12345';
+    
+    // Close all positions
+    $tradeApi->closeAllUserLoginDelete($userLogin);
+    
+    echo "All positions closed successfully for user $userLogin\n";
+    
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error closing positions: " . $e->getMessage() . "\n";
+}
+```
+
+<Warning>
+  The `closeAllUserLoginDelete()` method immediately closes ALL open positions for the specified user. This action cannot be undone. Use with extreme caution and ensure proper authorization.
+</Warning>
+
+## Complete Working Examples
+
+<CodeGroup>
+```php Position Analysis
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\TradeApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$tradeApi = new TradeApi(new Client(), $config);
+
+function analyzePositions($userLogin) {
+    global $tradeApi;
+    
+    try {
+        $positions = $tradeApi->positionsUserLoginGet($userLogin);
+        
+        $stats = [
+            'total_positions' => count($positions),
+            'total_profit' => 0,
+            'buy_positions' => 0,
+            'sell_positions' => 0,
+            'symbols' => []
+        ];
+        
+        foreach ($positions as $position) {
+            $stats['total_profit'] += $position->getProfit();
+            
+            // Count position types
+            if ($position->getAction() == 0) { // Buy
+                $stats['buy_positions']++;
+            } else { // Sell
+                $stats['sell_positions']++;
+            }
+            
+            // Track by symbol
+            $symbol = $position->getSymbol();
+            if (!isset($stats['symbols'][$symbol])) {
+                $stats['symbols'][$symbol] = [
+                    'count' => 0,
+                    'volume' => 0,
+                    'profit' => 0
+                ];
+            }
+            $stats['symbols'][$symbol]['count']++;
+            $stats['symbols'][$symbol]['volume'] += $position->getVolume();
+            $stats['symbols'][$symbol]['profit'] += $position->getProfit();
+        }
+        
+        return $stats;
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+        return null;
+    }
+}
+
+// Usage
+$stats = analyzePositions('12345');
+
+if ($stats) {
+    echo "Position Analysis\n";
+    echo "================\n";
+    echo "Total Positions: " . $stats['total_positions'] . "\n";
+    echo "Total Profit/Loss: $" . number_format($stats['total_profit'], 2) . "\n";
+    echo "Buy Positions: " . $stats['buy_positions'] . "\n";
+    echo "Sell Positions: " . $stats['sell_positions'] . "\n";
+    echo "\nBy Symbol:\n";
+    
+    foreach ($stats['symbols'] as $symbol => $data) {
+        echo "  $symbol: " . $data['count'] . " positions, ";
+        echo "Volume: " . $data['volume'] . ", ";
+        echo "P/L: $" . number_format($data['profit'], 2) . "\n";
+    }
+}
+```
+
+```php Trading Report
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\TradeApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$tradeApi = new TradeApi(new Client(), $config);
+
+function generateTradingReport($userLogin, $days = 30) {
+    global $tradeApi;
+    
+    try {
+        // Get deals history
+        $deals = $tradeApi->dealsUserLoginGet($userLogin, (string)$days);
+        
+        $report = [
+            'period_days' => $days,
+            'total_deals' => count($deals),
+            'total_profit' => 0,
+            'total_commission' => 0,
+            'winning_deals' => 0,
+            'losing_deals' => 0,
+            'total_volume' => 0,
+            'biggest_win' => 0,
+            'biggest_loss' => 0
+        ];
+        
+        foreach ($deals as $deal) {
+            $profit = $deal->getProfit();
+            $commission = $deal->getCommission();
+            
+            $report['total_profit'] += $profit;
+            $report['total_commission'] += $commission;
+            $report['total_volume'] += $deal->getVolume();
+            
+            if ($profit > 0) {
+                $report['winning_deals']++;
+                if ($profit > $report['biggest_win']) {
+                    $report['biggest_win'] = $profit;
+                }
+            } elseif ($profit < 0) {
+                $report['losing_deals']++;
+                if ($profit < $report['biggest_loss']) {
+                    $report['biggest_loss'] = $profit;
+                }
+            }
+        }
+        
+        // Calculate win rate
+        if ($report['total_deals'] > 0) {
+            $report['win_rate'] = ($report['winning_deals'] / $report['total_deals']) * 100;
+        } else {
+            $report['win_rate'] = 0;
+        }
+        
+        return $report;
+        
+    } catch (\D4T\MT5Sdk\ApiException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+        return null;
+    }
+}
+
+// Generate report
+$report = generateTradingReport('12345', 30);
+
+if ($report) {
+    echo "Trading Report - Last {$report['period_days']} Days\n";
+    echo "==========================================\n";
+    echo "Total Deals: " . $report['total_deals'] . "\n";
+    echo "Winning Deals: " . $report['winning_deals'] . "\n";
+    echo "Losing Deals: " . $report['losing_deals'] . "\n";
+    echo "Win Rate: " . number_format($report['win_rate'], 2) . "%\n";
+    echo "Total Profit/Loss: $" . number_format($report['total_profit'], 2) . "\n";
+    echo "Total Commission: $" . number_format($report['total_commission'], 2) . "\n";
+    echo "Net Profit: $" . number_format($report['total_profit'] - $report['total_commission'], 2) . "\n";
+    echo "Total Volume: " . $report['total_volume'] . "\n";
+    echo "Biggest Win: $" . number_format($report['biggest_win'], 2) . "\n";
+    echo "Biggest Loss: $" . number_format($report['biggest_loss'], 2) . "\n";
+}
+```
+
+```php Risk Management
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+use D4T\MT5Sdk\MT5Manager\TradeApi;
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+class RiskManager {
+    private $tradeApi;
+    private $accountApi;
+    
+    public function __construct($config) {
+        $client = new Client();
+        $this->tradeApi = new TradeApi($client, $config);
+        $this->accountApi = new AccountApi($client, $config);
+    }
+    
+    public function checkRiskLevels($userLogin, $maxDrawdown = 20) {
+        try {
+            // Get account info
+            $account = $this->accountApi->accountLoginGet($userLogin);
+            $equity = $account->getEquity();
+            $balance = $account->getBalance();
+            
+            // Calculate current drawdown
+            $currentDrawdown = (($balance - $equity) / $balance) * 100;
+            
+            // Get open positions
+            $positions = $this->tradeApi->positionsUserLoginGet($userLogin);
+            
+            $totalLoss = 0;
+            foreach ($positions as $position) {
+                if ($position->getProfit() < 0) {
+                    $totalLoss += abs($position->getProfit());
+                }
+            }
+            
+            $riskLevel = [
+                'status' => 'ok',
+                'current_drawdown' => $currentDrawdown,
+                'max_drawdown' => $maxDrawdown,
+                'total_unrealized_loss' => $totalLoss,
+                'action_required' => false
+            ];
+            
+            // Check if risk limits exceeded
+            if ($currentDrawdown > $maxDrawdown) {
+                $riskLevel['status'] = 'critical';
+                $riskLevel['action_required'] = true;
+                $riskLevel['message'] = 'Maximum drawdown exceeded!';
+                
+                // Close all positions if critical
+                $this->tradeApi->closeAllUserLoginDelete($userLogin);
+                $riskLevel['action_taken'] = 'All positions closed';
+            } elseif ($currentDrawdown > ($maxDrawdown * 0.8)) {
+                $riskLevel['status'] = 'warning';
+                $riskLevel['message'] = 'Approaching maximum drawdown';
+            }
+            
+            return $riskLevel;
+            
+        } catch (\D4T\MT5Sdk\ApiException $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+}
+
+// Usage
+$config = Configuration::getDefaultConfiguration()
+    ->setHost('https://your-mt5-server.com/api')
+    ->setAccessToken('your_bearer_token');
+
+$riskManager = new RiskManager($config);
+$riskCheck = $riskManager->checkRiskLevels('12345', 20);
+
+if (isset($riskCheck['error'])) {
+    echo "Error: " . $riskCheck['error'] . "\n";
+} else {
+    echo "Risk Status: " . strtoupper($riskCheck['status']) . "\n";
+    echo "Current Drawdown: " . number_format($riskCheck['current_drawdown'], 2) . "%\n";
+    echo "Unrealized Loss: $" . number_format($riskCheck['total_unrealized_loss'], 2) . "\n";
+    
+    if ($riskCheck['action_required']) {
+        echo "ACTION: " . $riskCheck['message'] . "\n";
+        if (isset($riskCheck['action_taken'])) {
+            echo "AUTO ACTION: " . $riskCheck['action_taken'] . "\n";
+        }
+    }
+}
+```
+</CodeGroup>
+
+## API Methods Reference
+
+| Method | Parameters | Description | Returns |
+|--------|-----------|-------------|----------|
+| `positionsUserLoginGet($login)` | `login`: User login ID | Get all open positions | Position[] |
+| `ordersUserLoginGet($login, $days, $types)` | `login`: User login ID<br/>`days`: Days to look back<br/>`types`: Order types | Get user orders | Order[] |
+| `dealsUserLoginGet($login, $days)` | `login`: User login ID<br/>`days`: Days to look back | Get executed deals | Deal[] |
+| `closeAllUserLoginDelete($login)` | `login`: User login ID | Close all positions | void |
+
+## Position Properties
+
+The `Position` model includes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `position` | integer | Position ticket number |
+| `symbol` | string | Trading symbol |
+| `action` | integer | 0 = Buy, 1 = Sell |
+| `volume` | float | Position volume (lots) |
+| `price_open` | float | Opening price |
+| `price_current` | float | Current market price |
+| `profit` | float | Current profit/loss |
+| `storage` | float | Swap/rollover fees |
+| `time` | integer | Open time (Unix timestamp) |
+
+## Order Properties
+
+The `Order` model includes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `order` | integer | Order ticket number |
+| `symbol` | string | Trading symbol |
+| `type` | integer | Order type |
+| `state` | integer | Order state |
+| `volume` | float | Order volume |
+| `price` | float | Order price |
+| `time_setup` | integer | Setup time (Unix timestamp) |
+| `time_expiration` | integer | Expiration time |
+
+## Deal Properties
+
+The `Deal` model includes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `deal` | integer | Deal ticket number |
+| `symbol` | string | Trading symbol |
+| `action` | integer | Deal action |
+| `volume` | float | Deal volume |
+| `price` | float | Execution price |
+| `profit` | float | Deal profit/loss |
+| `commission` | float | Commission charged |
+| `swap` | float | Swap/rollover |
+| `time` | integer | Execution time (Unix timestamp) |
+
+<Note>
+  All time values are returned as Unix timestamps. Use PHP's `date()` function to convert them to readable formats.
+</Note>
+
+## Best Practices
+
+1. **Rate Limiting**: Implement appropriate delays between API calls to avoid server overload
+2. **Error Handling**: Always wrap API calls in try-catch blocks
+3. **Data Validation**: Validate user login IDs and parameters before making requests
+4. **Historical Data**: Use appropriate `days_back` values to balance data completeness with performance
+5. **Position Monitoring**: Regularly monitor open positions for risk management
+6. **Async Operations**: Use async methods when retrieving data for multiple users
+
+## Risk Management
+
+When implementing trading operations:
+
+- Monitor margin levels before allowing new positions
+- Set up automated position closure for critical drawdown levels
+- Track total exposure across all symbols
+- Implement maximum position size limits
+- Log all position closures for audit trails
+
+<Warning>
+  Always implement proper authorization checks before allowing position closures or trade operations. Unauthorized trading operations can result in significant financial losses and legal liability.
+</Warning>
+
+## Next Steps
+
+- [Account Management](/guides/account-management) - Retrieve account balances and equity
+- [User Management](/guides/user-management) - Manage user accounts and permissions
+- [Market Data](/guides/market-data) - Access symbol information and pricing data

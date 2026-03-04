@@ -1,80 +1,375 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with the MT5 Manager API PHP SDK in minutes
 ---
 
-## Get started in three steps
+This guide will help you make your first API call to your MetaTrader 5 server using the PHP SDK. You'll learn how to authenticate, retrieve account information, and handle responses.
 
-Get your documentation site running locally and make your first customization.
+## Before You Begin
 
-### Step 1: Set up your local environment
+Ensure you have:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+1. [Installed the SDK](/installation)
+2. Access to a MetaTrader 5 server with:
+   - Server IP address and port (e.g., `127.0.0.1:443`)
+   - Manager login credentials
+   - Manager password
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  The MT5 Manager API uses bearer token authentication. You must first call `/init/` to obtain a token before making other API requests.
 </Note>
+
+## Complete Example
+
+Here's a complete example that demonstrates the full workflow from initialization to making API calls:
+
+<Steps>
+  <Step title="Initialize and Authenticate">
+    First, create a Configuration object and use the BasicApi to authenticate with your MT5 server:
+
+    ```php
+    <?php
+    require_once __DIR__ . '/vendor/autoload.php';
+
+    use D4T\MT5Sdk\Configuration;
+    use D4T\MT5Sdk\MT5Manager\BasicApi;
+    use GuzzleHttp\Client;
+
+    // Create configuration
+    $config = new Configuration();
+    $config->setHost('http://your-mt5-api-host.com/v1');
+
+    // Initialize the Basic API
+    $basicApi = new BasicApi(
+        new Client(),
+        $config
+    );
+
+    try {
+        // Authenticate and get token
+        $result = $basicApi->initGet(
+            '127.0.0.1:443',  // MT5 server IP:port
+            '10001',           // Manager login
+            'ManagerPass123'   // Manager password
+        );
+        
+        // Extract the authentication token
+        $token = $result->getToken();
+        echo "Authentication successful! Token: " . $token . "\n";
+        
+        // Set the token for subsequent requests
+        $config->setAccessToken($token);
+        
+    } catch (Exception $e) {
+        echo 'Authentication failed: ' . $e->getMessage() . "\n";
+        exit(1);
+    }
+    ?>
+    ```
+
+    <Note>
+      Replace `your-mt5-api-host.com`, the server IP, login, and password with your actual MT5 server details.
+    </Note>
+  </Step>
+
+  <Step title="Make Your First API Call">
+    Once authenticated, you can make API calls. Let's retrieve account information:
+
+    ```php
+    <?php
+    use D4T\MT5Sdk\MT5Manager\AccountApi;
+
+    // Create Account API instance with authenticated config
+    $accountApi = new AccountApi(
+        new Client(),
+        $config  // This config now has the access token set
+    );
+
+    try {
+        // Get account by login
+        $account = $accountApi->accountLoginGet('12345');
+        
+        echo "Account Information:\n";
+        echo "Login: " . $account->getLogin() . "\n";
+        echo "Balance: " . $account->getBalance() . "\n";
+        echo "Equity: " . $account->getEquity() . "\n";
+        
+    } catch (Exception $e) {
+        echo 'Error retrieving account: ' . $e->getMessage() . "\n";
+    }
+    ?>
+    ```
+  </Step>
+
+  <Step title="Working with Users">
+    Create, update, and manage users on your MT5 server:
+
+    ```php
+    <?php
+    use D4T\MT5Sdk\MT5Manager\UserApi;
+    use D4T\MT5Sdk\Models\User;
+
+    // Create User API instance
+    $userApi = new UserApi(
+        new Client(),
+        $config
+    );
+
+    // Get user information
+    try {
+        $user = $userApi->userUserLoginGet('12345');
+        echo "User: " . $user->getName() . "\n";
+        echo "Email: " . $user->getEmail() . "\n";
+        echo "Group: " . $user->getGroup() . "\n";
+    } catch (Exception $e) {
+        echo 'Error: ' . $e->getMessage() . "\n";
+    }
+
+    // Create a new user
+    $newUser = new User();
+    $newUser->setPassword('123456Aa');
+    $newUser->setPasswordInvestor('123456Aa');
+    $newUser->setName('John Doe');
+    $newUser->setEmail('john@example.com');
+    $newUser->setGroup('demo\\demoforex');
+    $newUser->setLeverage(100);
+
+    try {
+        $result = $userApi->userAddPost($newUser);
+        echo "User created with login: " . $result->getUser()->getLogin() . "\n";
+    } catch (Exception $e) {
+        echo 'Error creating user: ' . $e->getMessage() . "\n";
+    }
+    ?>
+    ```
+  </Step>
+</Steps>
+
+## Full Working Example
+
+Here's a complete script that ties everything together:
+
+<CodeGroup>
+```php Complete Example
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+
+use D4T\MT5Sdk\Configuration;
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+use D4T\MT5Sdk\MT5Manager\UserApi;
+use GuzzleHttp\Client;
+
+// Configuration
+$config = new Configuration();
+$config->setHost('http://your-mt5-api-host.com/v1');
+
+// Step 1: Authenticate
+$basicApi = new BasicApi(new Client(), $config);
+
+try {
+    $initResult = $basicApi->initGet(
+        '127.0.0.1:443',
+        '10001',
+        'ManagerPass123'
+    );
+    
+    $token = $initResult->getToken();
+    $config->setAccessToken($token);
+    
+    echo "✓ Authentication successful\n";
+    
+} catch (Exception $e) {
+    die("✗ Authentication failed: " . $e->getMessage() . "\n");
+}
+
+// Step 2: Get account information
+$accountApi = new AccountApi(new Client(), $config);
+
+try {
+    $account = $accountApi->accountLoginGet('12345');
+    echo "\n✓ Account {$account->getLogin()} retrieved\n";
+    echo "  Balance: {$account->getBalance()}\n";
+    echo "  Equity: {$account->getEquity()}\n";
+} catch (Exception $e) {
+    echo "✗ Error: " . $e->getMessage() . "\n";
+}
+
+// Step 3: Get user information
+$userApi = new UserApi(new Client(), $config);
+
+try {
+    $user = $userApi->userUserLoginGet('12345');
+    echo "\n✓ User information retrieved\n";
+    echo "  Name: {$user->getName()}\n";
+    echo "  Email: {$user->getEmail()}\n";
+    echo "  Group: {$user->getGroup()}\n";
+} catch (Exception $e) {
+    echo "✗ Error: " . $e->getMessage() . "\n";
+}
+
+// Step 4: Test ping endpoint
+try {
+    $pingResult = $basicApi->pingGet();
+    echo "\n✓ Server ping successful\n";
+} catch (Exception $e) {
+    echo "✗ Ping failed: " . $e->getMessage() . "\n";
+}
+?>
+```
+
+```php Environment Variables Example
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+
+use D4T\MT5Sdk\Configuration;
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use GuzzleHttp\Client;
+
+// Load from environment variables (recommended for production)
+$config = new Configuration();
+$config->setHost(getenv('MT5_API_HOST') ?: 'http://localhost/v1');
+
+$basicApi = new BasicApi(new Client(), $config);
+
+try {
+    $result = $basicApi->initGet(
+        getenv('MT5_SERVER'),      // e.g., "127.0.0.1:443"
+        getenv('MT5_LOGIN'),       // e.g., "10001"
+        getenv('MT5_PASSWORD')     // Manager password
+    );
+    
+    $config->setAccessToken($result->getToken());
+    echo "Authenticated successfully\n";
+    
+} catch (Exception $e) {
+    error_log("MT5 Authentication failed: " . $e->getMessage());
+    exit(1);
+}
+?>
+```
+</CodeGroup>
+
+## Common Operations
+
+Here are some common operations you'll perform with the SDK:
+
+<Accordion title="Ping the API Server">
+  Test your connection to the API:
+
+  ```php
+  $basicApi = new BasicApi(new Client(), $config);
+  
+  try {
+      $pingResult = $basicApi->pingGet();
+      echo "Server is responding\n";
+  } catch (Exception $e) {
+      echo "Server not responding: " . $e->getMessage() . "\n";
+  }
+  ```
+</Accordion>
+
+<Accordion title="Get User Groups">
+  Retrieve all available trading groups:
+
+  ```php
+  use D4T\MT5Sdk\MT5Manager\GroupApi;
+  
+  $groupApi = new GroupApi(new Client(), $config);
+  
+  try {
+      $groups = $groupApi->groupsGet();
+      foreach ($groups as $group) {
+          echo $group->getName() . "\n";
+      }
+  } catch (Exception $e) {
+      echo "Error: " . $e->getMessage() . "\n";
+  }
+  ```
+</Accordion>
+
+<Accordion title="Deposit to Account">
+  Add funds to a user's account:
+
+  ```php
+  use D4T\MT5Sdk\Models\BalanceType;
+  
+  $userApi = new UserApi(new Client(), $config);
+  
+  $deposit = new BalanceType();
+  $deposit->setLogin(12345);
+  $deposit->setAmount(1000.00);
+  $deposit->setType(3);  // Deposit type
+  $deposit->setComment('Initial deposit');
+  
+  try {
+      $userApi->userDepositPost($deposit);
+      echo "Deposit successful\n";
+  } catch (Exception $e) {
+      echo "Deposit failed: " . $e->getMessage() . "\n";
+  }
+  ```
+</Accordion>
+
+<Accordion title="Get Trading Positions">
+  Retrieve open positions for a user:
+
+  ```php
+  use D4T\MT5Sdk\MT5Manager\TradeApi;
+  
+  $tradeApi = new TradeApi(new Client(), $config);
+  
+  try {
+      $positions = $tradeApi->positionsUserLoginGet('12345');
+      foreach ($positions as $position) {
+          echo "Symbol: {$position->getSymbol()}, "
+             . "Volume: {$position->getVolume()}, "
+             . "Profit: {$position->getProfit()}\n";
+      }
+  } catch (Exception $e) {
+      echo "Error: " . $e->getMessage() . "\n";
+  }
+  ```
+</Accordion>
+
+## Error Handling
+
+The SDK throws exceptions when API calls fail. Always wrap your API calls in try-catch blocks:
+
+```php
+use D4T\MT5Sdk\ApiException;
+
+try {
+    $result = $accountApi->accountLoginGet('12345');
+} catch (ApiException $e) {
+    echo "API Error: " . $e->getMessage() . "\n";
+    echo "HTTP Code: " . $e->getCode() . "\n";
+    echo "Response Body: " . $e->getResponseBody() . "\n";
+} catch (Exception $e) {
+    echo "General Error: " . $e->getMessage() . "\n";
+}
+```
+
+## Best Practices
+
+<Note>
+  **Security**: Never hardcode credentials in your source code. Use environment variables or secure configuration management.
+</Note>
+
+<Note>
+  **Token Management**: The authentication token should be reused for multiple requests. Store it securely and refresh it when it expires.
+</Note>
+
+<Note>
+  **Error Handling**: Always implement proper error handling to gracefully handle network issues, authentication failures, and API errors.
+</Note>
+
+## Next Steps
+
+Now that you've made your first API calls, explore the complete API reference:
+
+- [Account API](/api/account-api) - Manage trading accounts
+- [User API](/api/user-api) - User management operations
+- [Trade API](/api/trade-api) - Trading operations
+- [Group API](/api/group-api) - Group management
+- [Symbol API](/api/symbol-api) - Market symbols

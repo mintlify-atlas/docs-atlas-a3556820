@@ -1,0 +1,275 @@
+---
+title: MT5 Manager API
+description: PHP SDK for MetaTrader 5 Manager API providing programmatic access to trading accounts, positions, orders, and market symbols
+mode: custom
+---
+
+<div className="relative overflow-hidden bg-gradient-to-br from-[#1E40AF] via-[#1E3A8A] to-[#0f172a] dark:from-[#0f1117] dark:via-[#1E3A8A] dark:to-[#1E40AF] py-20">
+  <div className="max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid lg:grid-cols-12 gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          MT5 Manager API Documentation
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-100 dark:text-gray-200 mb-8 max-w-2xl">
+          Complete PHP SDK for MetaTrader 5 Manager API. Manage trading accounts, execute operations, and access market data programmatically.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a 
+            href="/quickstart" 
+            className="inline-flex items-center px-6 py-3 bg-white text-[#1E40AF] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Get Started
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a 
+            href="/api/basic-api" 
+            className="inline-flex items-center px-6 py-3 border border-white/30 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors"
+          >
+            API Reference
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#3B82F6] to-[#1E40AF] rounded-2xl blur-3xl opacity-30"></div>
+          <div className="relative bg-[#1a1d27] dark:bg-[#0f1117] border border-[#27272a] dark:border-[#1E40AF]/30 rounded-2xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <pre className="text-sm text-gray-300"><code>{`<?php
+use D4T\\MT5Sdk\\MT5Manager\\BasicApi;
+
+$api = new BasicApi();
+$token = $api->initGet(
+  '127.0.0.1:443',
+  'manager_login',
+  'password'
+);
+
+// Start managing your MT5 platform
+$account = $accountApi->accountLoginGet(12345);
+echo "Balance: " . $account->getBalance();`}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quick start</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Get up and running with the MT5 Manager API in minutes</p>
+  
+  <Steps>
+    <Step title="Install via Composer">
+      Add the package to your project using Composer:
+      
+      ```bash
+      composer require dev4traders/mt5-manager-api:*@dev
+      ```
+      
+      Or add to your `composer.json`:
+      
+      ```json
+      {
+        "repositories": [{
+          "type": "git",
+          "url": "https://github.com/dev4traders/mt5-manager-api.git"
+        }],
+        "require": {
+          "dev4traders/mt5-manager-api": "*@dev"
+        }
+      }
+      ```
+    </Step>
+    
+    <Step title="Initialize the Manager Connection">
+      Connect to your MetaTrader 5 server and obtain an authentication token:
+      
+      ```php
+      <?php
+      require_once(__DIR__ . '/vendor/autoload.php');
+
+      use D4T\MT5Sdk\MT5Manager\BasicApi;
+      use GuzzleHttp\Client;
+
+      $apiInstance = new BasicApi(new Client());
+
+      try {
+          $result = $apiInstance->initGet(
+              '127.0.0.1:443',  // MT5 server IP:port
+              'manager_login',   // Manager login
+              'manager_password' // Manager password
+          );
+          
+          $token = $result->getToken();
+          echo "Connected! Token: " . $token;
+      } catch (Exception $e) {
+          echo 'Connection failed: ' . $e->getMessage();
+      }
+      ```
+      
+      <Note>
+        The token returned by `initGet()` is required for all subsequent API calls. Store it securely and use it in your API configuration.
+      </Note>
+    </Step>
+    
+    <Step title="Configure API Authentication">
+      Set up your configuration with the authentication token:
+      
+      ```php
+      <?php
+      use D4T\MT5Sdk\Configuration;
+      use D4T\MT5Sdk\MT5Manager\AccountApi;
+
+      // Create configuration with your token
+      $config = Configuration::getDefaultConfiguration()
+          ->setAccessToken($token);
+
+      // Initialize API clients with configuration
+      $accountApi = new AccountApi(new Client(), $config);
+      ```
+    </Step>
+    
+    <Step title="Make Your First API Call">
+      Retrieve account information for a user:
+      
+      ```php
+      <?php
+      try {
+          $account = $accountApi->accountLoginGet(12345);
+          
+          echo "Login: " . $account->getLogin() . "\n";
+          echo "Balance: " . $account->getBalance() . "\n";
+          echo "Equity: " . $account->getEquity() . "\n";
+          echo "Margin: " . $account->getMargin() . "\n";
+          echo "Free Margin: " . $account->getMarginFree() . "\n";
+      } catch (Exception $e) {
+          echo 'API call failed: ' . $e->getMessage();
+      }
+      ```
+      
+      <Accordion title="Example Response">
+        ```json
+        {
+          "login": 12345,
+          "balance": 10000.00,
+          "profit": 150.50,
+          "equity": 10150.50,
+          "margin": 1000.00,
+          "margin_free": 9150.50,
+          "margin_level": 1015.05,
+          "leverage": 100,
+          "volume": 1.5
+        }
+        ```
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Explore by topic</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Dive deeper into specific areas of the MT5 Manager API</p>
+  
+  <CardGroup cols={2}>
+    <Card title="Account Management" icon="wallet" href="/guides/account-management">
+      Retrieve account information, balances, equity, and margin details
+    </Card>
+    <Card title="User Management" icon="users" href="/guides/user-management">
+      Create, update, and manage trading users, deposits, and withdrawals
+    </Card>
+    <Card title="Trading Operations" icon="chart-line" href="/guides/trading-operations">
+      Access positions, orders, deals, and execute trading operations
+    </Card>
+    <Card title="Market Data" icon="globe" href="/guides/market-data">
+      Get symbols, groups, and market information from your MT5 server
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Core features</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Everything you need to integrate with MetaTrader 5</p>
+  
+  <div className="grid md:grid-cols-3 gap-6">
+    <div className="border border-gray-200 dark:border-[#27272a] rounded-lg p-6 bg-white dark:bg-[#1a1d27] hover:border-[#1E40AF] dark:hover:border-[#3B82F6] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 dark:bg-[#3B82F6]/10 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#1E40AF] dark:text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Bearer Authentication</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">Secure token-based authentication for all API operations</p>
+    </div>
+    
+    <div className="border border-gray-200 dark:border-[#27272a] rounded-lg p-6 bg-white dark:bg-[#1a1d27] hover:border-[#1E40AF] dark:hover:border-[#3B82F6] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 dark:bg-[#3B82F6]/10 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#1E40AF] dark:text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Complete Type Definitions</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">Full model classes for all API request and response objects</p>
+    </div>
+    
+    <div className="border border-gray-200 dark:border-[#27272a] rounded-lg p-6 bg-white dark:bg-[#1a1d27] hover:border-[#1E40AF] dark:hover:border-[#3B82F6] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#1E40AF]/10 dark:bg-[#3B82F6]/10 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#1E40AF] dark:text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">PHP 7.4+ & 8.0+ Support</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">Modern PHP compatibility with Guzzle HTTP client</p>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">API reference</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Comprehensive documentation for all API classes and models</p>
+  
+  <CardGroup cols={3}>
+    <Card title="BasicApi" icon="plug" href="/api/basic-api">
+      Initialize connections and ping the API
+    </Card>
+    <Card title="AccountApi" icon="wallet" href="/api/account-api">
+      Retrieve account information by login
+    </Card>
+    <Card title="UserApi" icon="user" href="/api/user-api">
+      Manage users, deposits, and withdrawals
+    </Card>
+    <Card title="TradeApi" icon="chart-candlestick" href="/api/trade-api">
+      Access positions, orders, and deals
+    </Card>
+    <Card title="GroupApi" icon="layer-group" href="/api/group-api">
+      Retrieve group configurations
+    </Card>
+    <Card title="SymbolApi" icon="coins" href="/api/symbol-api">
+      Get market symbols and specifications
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="border border-gray-200 dark:border-[#27272a] bg-gradient-to-r from-[#1E40AF]/5 to-[#3B82F6]/5 dark:from-[#1E40AF]/10 dark:to-[#3B82F6]/10 rounded-2xl p-8 md:p-12">
+    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">Ready to get started?</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+      Install the SDK and start managing your MetaTrader 5 platform programmatically in minutes.
+    </p>
+    <a 
+      href="/quickstart" 
+      className="inline-flex items-center px-6 py-3 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white font-semibold rounded-lg transition-colors"
+    >
+      View Quickstart Guide
+      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </a>
+  </div>
+</div>

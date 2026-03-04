@@ -1,0 +1,258 @@
+---
+title: SymbolApi
+description: Market symbol operations for retrieving trading instruments
+---
+
+The `SymbolApi` class provides methods for retrieving information about available trading symbols (instruments) on the MT5 server.
+
+## Constructor
+
+```php
+public function __construct(
+    ClientInterface $client = null,
+    Configuration $config = null,
+    HeaderSelector $selector = null
+)
+```
+
+Creates a new SymbolApi instance.
+
+<ParamField path="client" type="ClientInterface" optional>
+  Guzzle HTTP client instance. If not provided, a new Client will be created.
+</ParamField>
+
+<ParamField path="config" type="Configuration" optional>
+  SDK configuration object. If not provided, a new Configuration will be created.
+</ParamField>
+
+<ParamField path="selector" type="HeaderSelector" optional>
+  Header selector instance. If not provided, a new HeaderSelector will be created.
+</ParamField>
+
+## Methods
+
+### getConfig
+
+Retrieves the current configuration object.
+
+```php
+public function getConfig(): Configuration
+```
+
+<ResponseField name="Configuration" type="Configuration">
+  The current SDK configuration object
+</ResponseField>
+
+---
+
+### symbolsGet
+
+Retrieves a list of all available market symbols.
+
+```php
+public function symbolsGet(): \D4T\MT5Sdk\Models\Symbol[]
+```
+
+<ResponseField name="Symbol[]" type="array">
+  Array of Symbol objects containing information about all available trading instruments
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\SymbolApi;
+
+$symbolApi = new SymbolApi();
+
+try {
+    $symbols = $symbolApi->symbolsGet();
+    
+    foreach ($symbols as $symbol) {
+        echo "Symbol: " . $symbol->getSymbol() . "\n";
+        echo "Description: " . $symbol->getDescription() . "\n";
+        echo "Bid: " . $symbol->getBid() . "\n";
+        echo "Ask: " . $symbol->getAsk() . "\n";
+        echo "Digits: " . $symbol->getDigits() . "\n";
+        echo "---\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### symbolsGetWithHttpInfo
+
+Retrieves all symbols with HTTP response details.
+
+```php
+public function symbolsGetWithHttpInfo(): array
+```
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\Symbol[]` - Array of symbol objects
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+list($symbols, $statusCode, $headers) = $symbolApi->symbolsGetWithHttpInfo();
+
+echo "Status: " . $statusCode . "\n";
+echo "Total symbols: " . count($symbols) . "\n";
+
+foreach ($symbols as $symbol) {
+    echo $symbol->getSymbol() . ": " . $symbol->getDescription() . "\n";
+}
+```
+
+---
+
+### symbolsGetAsync
+
+Asynchronously retrieves all available symbols.
+
+```php
+public function symbolsGetAsync(): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to `\D4T\MT5Sdk\Models\Symbol[]`
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+$promise = $symbolApi->symbolsGetAsync();
+
+$promise->then(
+    function ($symbols) {
+        foreach ($symbols as $symbol) {
+            echo "Symbol: " . $symbol->getSymbol() . "\n";
+            echo "Spread: " . ($symbol->getAsk() - $symbol->getBid()) . "\n";
+        }
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage();
+    }
+);
+```
+
+---
+
+### symbolsGetAsyncWithHttpInfo
+
+Asynchronously retrieves all symbols with HTTP details.
+
+```php
+public function symbolsGetAsyncWithHttpInfo(): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to an array containing symbols array, HTTP status code, and response headers
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - On invalid arguments
+
+**Example:**
+
+```php
+$promise = $symbolApi->symbolsGetAsyncWithHttpInfo();
+
+$promise->then(
+    function ($response) {
+        list($symbols, $statusCode, $headers) = $response;
+        
+        echo "Status: " . $statusCode . "\n";
+        echo "Symbols retrieved: " . count($symbols) . "\n";
+        
+        // Filter for Forex pairs
+        $forexSymbols = array_filter($symbols, function($symbol) {
+            return strpos($symbol->getSymbol(), 'USD') !== false;
+        });
+        
+        foreach ($forexSymbols as $symbol) {
+            echo $symbol->getSymbol() . ": Bid=" . $symbol->getBid() . 
+                 ", Ask=" . $symbol->getAsk() . "\n";
+        }
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage();
+    }
+);
+```
+
+---
+
+## Symbol Object Properties
+
+The Symbol object returned by these methods typically contains:
+
+- `symbol` - Symbol name (e.g., "EURUSD", "BTCUSD")
+- `description` - Human-readable symbol description
+- `bid` - Current bid price
+- `ask` - Current ask price
+- `digits` - Number of decimal places for the symbol
+- `spread` - Current spread in points
+- `volume_min` - Minimum trade volume
+- `volume_max` - Maximum trade volume
+- `volume_step` - Volume step increment
+- `contract_size` - Contract size
+- `trade_mode` - Trading mode (disabled, long only, short only, close only, full)
+- And other symbol-specific properties
+
+**Complete Usage Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\SymbolApi;
+use D4T\MT5Sdk\Configuration;
+
+// Configure the API
+$config = new Configuration();
+$config->setHost('http://your-mt5-api-host');
+$config->setAccessToken('your-bearer-token');
+
+$symbolApi = new SymbolApi(null, $config);
+
+try {
+    $symbols = $symbolApi->symbolsGet();
+    
+    // Find specific symbol
+    $eurusd = null;
+    foreach ($symbols as $symbol) {
+        if ($symbol->getSymbol() === 'EURUSD') {
+            $eurusd = $symbol;
+            break;
+        }
+    }
+    
+    if ($eurusd) {
+        echo "EURUSD Information:\n";
+        echo "Bid: " . $eurusd->getBid() . "\n";
+        echo "Ask: " . $eurusd->getAsk() . "\n";
+        echo "Spread: " . ($eurusd->getAsk() - $eurusd->getBid()) . "\n";
+        echo "Min Volume: " . $eurusd->getVolumeMin() . "\n";
+        echo "Max Volume: " . $eurusd->getVolumeMax() . "\n";
+        echo "Contract Size: " . $eurusd->getContractSize() . "\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "API Error: " . $e->getMessage() . "\n";
+    echo "Error Code: " . $e->getCode() . "\n";
+}
+```

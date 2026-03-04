@@ -1,0 +1,83 @@
+---
+title: Group
+description: Group model representing trading group configuration in MT5
+---
+
+The `Group` model represents a trading group configuration in the MetaTrader 5 platform. Groups define default settings and permissions for users.
+
+## Properties
+
+<ResponseField name="name" type="string" required>
+  The unique name of the trading group
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  The base currency for the group (e.g., "USD", "EUR")
+</ResponseField>
+
+<ResponseField name="default_leverage" type="int">
+  The default leverage ratio for users in this group (e.g., 100 for 1:100 leverage)
+</ResponseField>
+
+## Example
+
+```json
+{
+  "name": "demo\\standard",
+  "currency": "USD",
+  "default_leverage": 100
+}
+```
+
+## Group Naming Convention
+
+Group names in MT5 typically follow a hierarchical structure using backslashes:
+
+- `demo\standard` - Standard demo accounts
+- `demo\vip` - VIP demo accounts
+- `real\standard` - Standard real accounts
+- `real\pro` - Professional real accounts
+
+## Methods
+
+The Group model provides getter and setter methods for all properties:
+
+- `getName()` / `setName($name)` - Get/set the group name
+- `getCurrency()` / `setCurrency($currency)` - Get/set the base currency
+- `getDefaultLeverage()` / `setDefaultLeverage($default_leverage)` - Get/set the default leverage
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Group;
+
+// Create a group instance
+$group = new Group([
+    'name' => 'demo\\\\standard',
+    'currency' => 'USD',
+    'default_leverage' => 100
+]);
+
+// Access properties
+$name = $group->getName();
+$currency = $group->getCurrency();
+$leverage = $group->getDefaultLeverage();
+
+// Update properties
+$group->setCurrency('EUR');
+$group->setDefaultLeverage(200);
+```
+
+## Common Use Cases
+
+### Retrieving Group Information
+
+Groups are typically used to:
+- Define default trading conditions for users
+- Set leverage limits
+- Configure currency settings
+- Organize accounts by type (demo, real, VIP, etc.)
+
+### Group Hierarchy
+
+Groups can be organized hierarchically to manage different account types and trading conditions efficiently.

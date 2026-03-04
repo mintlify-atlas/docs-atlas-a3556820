@@ -1,0 +1,211 @@
+---
+title: Deal
+description: Deal model representing executed trades and transactions in MT5
+---
+
+The `Deal` model represents an executed deal or transaction in the MetaTrader 5 platform, including trades, deposits, credits, and other balance operations.
+
+## Properties
+
+<ResponseField name="ticket" type="int">
+  Unique deal ticket number
+</ResponseField>
+
+<ResponseField name="entry" type="int">
+  Deal entry type
+  
+  **Allowed values:**
+  - `0` - In market
+  - `1` - Out of market
+  - `2` - Reverse
+  - `3` - Closed by hedged position
+</ResponseField>
+
+<ResponseField name="reason" type="int">
+  Deal placement reason
+  
+  **Allowed values:**
+  - `0` - Deal placed manually
+  - `1` - Deal placed by expert
+  - `2` - Deal placed by dealer
+  - `3` - Deal placed due to SL (Stop Loss)
+  - `4` - Deal placed due to TP (Take Profit)
+  - `5-15` - Other reasons
+  - `16` - Deal placed manually by mobile terminal
+  - `17` - Deal placed manually by web terminal
+</ResponseField>
+
+<ResponseField name="action" type="int">
+  Deal action type
+  
+  **Allowed values:**
+  - `0` - Buy
+  - `1` - Sell
+  - `2` - Deposit operation
+  - `3` - Credit operation
+  - `4` - Additional charges
+  - `5` - Correction deals
+  - `6` - Bonus
+  - `7` - Commission
+</ResponseField>
+
+<ResponseField name="type" type="int">
+  Deal type
+  
+  **Allowed values:**
+  - `0` - Buy
+  - `1` - Sell
+  - `4` - Charge
+  - `6` - Balance
+  - `7` - Commission
+</ResponseField>
+
+<ResponseField name="type_str" type="string">
+  Deal type as a human-readable string
+</ResponseField>
+
+<ResponseField name="symbol" type="string">
+  Trading symbol (e.g., "EURUSD")
+</ResponseField>
+
+<ResponseField name="lots" type="float">
+  Deal volume in lots
+</ResponseField>
+
+<ResponseField name="time" type="string">
+  Deal execution time
+</ResponseField>
+
+<ResponseField name="price" type="float">
+  Deal execution price
+</ResponseField>
+
+<ResponseField name="comment" type="string">
+  Deal comment or note
+</ResponseField>
+
+<ResponseField name="sl" type="float">
+  Stop Loss level
+</ResponseField>
+
+<ResponseField name="tp" type="float">
+  Take Profit level
+</ResponseField>
+
+<ResponseField name="pl" type="float">
+  Profit/Loss amount
+</ResponseField>
+
+<ResponseField name="commission" type="float">
+  Commission charged for the deal
+</ResponseField>
+
+<ResponseField name="swap" type="float">
+  Swap (rollover) amount
+</ResponseField>
+
+## Example
+
+```json
+{
+  "ticket": 123456789,
+  "entry": 0,
+  "reason": 0,
+  "action": 0,
+  "type": 0,
+  "type_str": "buy",
+  "symbol": "EURUSD",
+  "lots": 1.5,
+  "time": "2024-03-04T14:30:00Z",
+  "price": 1.0850,
+  "comment": "Manual trade",
+  "sl": 1.0800,
+  "tp": 1.0900,
+  "pl": 125.50,
+  "commission": 3.00,
+  "swap": 0.50
+}
+```
+
+## Deal Entry Types
+
+| Value | Description |
+|-------|-------------|
+| 0     | In market - Position opening or increasing |
+| 1     | Out of market - Position closing or decreasing |
+| 2     | Reverse - Position reversal |
+| 3     | Closed by hedged position |
+
+## Deal Reasons
+
+| Value | Description |
+|-------|-------------|
+| 0     | Deal placed manually |
+| 1     | Deal placed by expert advisor |
+| 2     | Deal placed by dealer |
+| 3     | Deal triggered by Stop Loss |
+| 4     | Deal triggered by Take Profit |
+| 16    | Deal placed manually by mobile terminal |
+| 17    | Deal placed manually by web terminal |
+
+## Deal Actions
+
+| Value | Description |
+|-------|-------------|
+| 0     | Buy |
+| 1     | Sell |
+| 2     | Deposit operation |
+| 3     | Credit operation |
+| 4     | Additional charges |
+| 5     | Correction deals |
+| 6     | Bonus |
+| 7     | Commission |
+
+## Methods
+
+The Deal model provides getter and setter methods for all properties:
+
+- `getTicket()` / `setTicket($ticket)` - Get/set the deal ticket
+- `getEntry()` / `setEntry($entry)` - Get/set the entry type
+- `getReason()` / `setReason($reason)` - Get/set the deal reason
+- `getAction()` / `setAction($action)` - Get/set the deal action
+- `getType()` / `setType($type)` - Get/set the deal type
+- `getTypeStr()` / `setTypeStr($type_str)` - Get/set the type string
+- `getSymbol()` / `setSymbol($symbol)` - Get/set the symbol
+- `getLots()` / `setLots($lots)` - Get/set the volume
+- `getTime()` / `setTime($time)` - Get/set the execution time
+- `getPrice()` / `setPrice($price)` - Get/set the execution price
+- `getComment()` / `setComment($comment)` - Get/set the comment
+- `getSl()` / `setSl($sl)` - Get/set the Stop Loss
+- `getTp()` / `setTp($tp)` - Get/set the Take Profit
+- `getPl()` / `setPl($pl)` - Get/set the profit/loss
+- `getCommission()` / `setCommission($commission)` - Get/set the commission
+- `getSwap()` / `setSwap($swap)` - Get/set the swap
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Deal;
+
+// Create a deal instance
+$deal = new Deal([
+    'ticket' => 123456789,
+    'entry' => 0,
+    'reason' => 0,
+    'action' => 0,
+    'type' => 0,
+    'symbol' => 'EURUSD',
+    'lots' => 1.5,
+    'price' => 1.0850,
+    'pl' => 125.50
+]);
+
+// Access properties
+$ticket = $deal->getTicket();
+$symbol = $deal->getSymbol();
+$profit = $deal->getPl();
+
+// Update properties
+$deal->setComment('Updated comment');
+$deal->setCommission(5.00);
+```

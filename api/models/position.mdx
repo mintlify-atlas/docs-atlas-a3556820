@@ -1,0 +1,94 @@
+---
+title: Position
+description: Position model representing open trading positions in MT5
+---
+
+The `Position` model represents an open trading position in the MetaTrader 5 platform.
+
+## Properties
+
+<ResponseField name="action" type="int">
+  Position action type
+  
+  **Allowed values:**
+  - `0` - Buy
+  - `1` - Sell
+</ResponseField>
+
+<ResponseField name="volume" type="float">
+  Position volume (lot size)
+</ResponseField>
+
+<ResponseField name="symbol" type="string">
+  Trading symbol (e.g., "EURUSD", "GBPUSD")
+</ResponseField>
+
+<ResponseField name="price" type="float">
+  Opening price of the position
+</ResponseField>
+
+<ResponseField name="time" type="string">
+  Time when the position was opened
+</ResponseField>
+
+<ResponseField name="id" type="int">
+  Unique position identifier
+</ResponseField>
+
+## Example
+
+```json
+{
+  "action": 0,
+  "volume": 1.5,
+  "symbol": "EURUSD",
+  "price": 1.0850,
+  "time": "2024-03-04T14:30:00Z",
+  "id": 987654321
+}
+```
+
+## Action Values
+
+The `action` field indicates the direction of the position:
+
+| Value | Description |
+|-------|-------------|
+| 0     | Buy (Long)  |
+| 1     | Sell (Short)|
+
+## Methods
+
+The Position model provides getter and setter methods for all properties:
+
+- `getAction()` / `setAction($action)` - Get/set the position action (buy/sell)
+- `getVolume()` / `setVolume($volume)` - Get/set the position volume
+- `getSymbol()` / `setSymbol($symbol)` - Get/set the trading symbol
+- `getPrice()` / `setPrice($price)` - Get/set the opening price
+- `getTime()` / `setTime($time)` - Get/set the opening time
+- `getId()` / `setId($id)` - Get/set the position ID
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\Position;
+
+// Create a position instance
+$position = new Position([
+    'action' => 0, // Buy
+    'volume' => 1.5,
+    'symbol' => 'EURUSD',
+    'price' => 1.0850,
+    'time' => '2024-03-04T14:30:00Z',
+    'id' => 987654321
+]);
+
+// Access properties
+$symbol = $position->getSymbol();
+$volume = $position->getVolume();
+$action = $position->getAction();
+
+// Update properties
+$position->setVolume(2.0);
+$position->setPrice(1.0860);
+```

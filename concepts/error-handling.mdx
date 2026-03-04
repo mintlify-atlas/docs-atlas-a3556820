@@ -1,0 +1,387 @@
+---
+title: Error Handling
+description: Handle API exceptions and errors in the MT5 Manager API SDK
+---
+
+## Overview
+
+The MT5 Manager API SDK uses the `ApiException` class to handle all API-related errors. This exception provides detailed information about HTTP status codes, response headers, and response bodies.
+
+## ApiException Class
+
+The `ApiException` class extends PHP's standard `Exception` and provides additional context about API errors:
+
+```php
+namespace D4T\MT5Sdk;
+
+use \Exception;
+
+class ApiException extends Exception
+{
+    protected $responseBody;      // HTTP response body
+    protected $responseHeaders;   // HTTP response headers
+    protected $responseObject;    // Deserialized response object
+}
+```
+
+## Basic Error Handling
+
+### Catching API Exceptions
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\ApiException;
+
+$api = new BasicApi();
+
+try {
+    $result = $api->initGet('127.0.0.1:443', 'manager_login', 'wrong_password');
+} catch (ApiException $e) {
+    echo "API Error occurred:\n";
+    echo "Message: " . $e->getMessage() . "\n";
+    echo "HTTP Code: " . $e->getCode() . "\n";
+}
+```
+
+### Exception Properties
+
+The `ApiException` constructor accepts four parameters:
+
+```php
+public function __construct(
+    $message = "",           // Error message
+    $code = 0,               // HTTP status code
+    $responseHeaders = [],   // HTTP response headers
+    $responseBody = null     // HTTP response body
+)
+```
+
+<ParamField path="message" type="string">
+  Human-readable error message
+</ParamField>
+
+<ParamField path="code" type="int">
+  HTTP status code (e.g., 400, 401, 500)
+</ParamField>
+
+<ParamField path="responseHeaders" type="array">
+  Array of HTTP response headers
+</ParamField>
+
+<ParamField path="responseBody" type="mixed">
+  HTTP response body as string or object
+</ParamField>
+
+## Accessing Error Details
+
+### Response Body
+
+Get the raw response body from the API:
+
+```php
+try {
+    $result = $api->someMethod();
+} catch (ApiException $e) {
+    $responseBody = $e->getResponseBody();
+    
+    // Response body might be JSON string or object
+    if (is_string($responseBody)) {
+        $errorData = json_decode($responseBody, true);
+        echo "Error details: " . print_r($errorData, true);
+    }
+}
+```
+
+### Response Headers
+
+Access HTTP response headers:
+
+```php
+try {
+    $result = $api->someMethod();
+} catch (ApiException $e) {
+    $headers = $e->getResponseHeaders();
+    
+    if (isset($headers['Content-Type'])) {
+        echo "Response type: " . $headers['Content-Type'][0] . "\n";
+    }
+}
+```
+
+### Response Object
+
+Get the deserialized response object:
+
+```php
+try {
+    $result = $api->pingGet();
+} catch (ApiException $e) {
+    $responseObject = $e->getResponseObject();
+    
+    if ($responseObject !== null) {
+        // Object was successfully deserialized despite error
+        echo "Structured error: " . print_r($responseObject, true);
+    }
+}
+```
+
+## Common Error Scenarios
+
+### Authentication Errors
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\ApiException;
+
+$api = new BasicApi();
+
+try {
+    $result = $api->initGet('127.0.0.1:443', 'invalid_login', 'invalid_password');
+} catch (ApiException $e) {
+    if ($e->getCode() === 401) {
+        echo "Authentication failed. Please check your credentials.\n";
+    } elseif ($e->getCode() === 403) {
+        echo "Access forbidden. Insufficient permissions.\n";
+    } else {
+        echo "Authentication error: " . $e->getMessage() . "\n";
+    }
+}
+```
+
+<Warning>
+Always handle authentication errors gracefully and avoid exposing sensitive error details to end users.
+</Warning>
+
+### Connection Errors
+
+```php
+try {
+    $result = $api->initGet('invalid-host:443', 'login', 'password');
+} catch (ApiException $e) {
+    if ($e->getCode() === 0) {
+        echo "Network error: Could not connect to server\n";
+        echo "Details: " . $e->getMessage() . "\n";
+    }
+}
+```
+
+### Validation Errors
+
+```php
+try {
+    // Missing required parameter
+    $result = $api->initGet(null, 'login', 'password');
+} catch (\InvalidArgumentException $e) {
+    echo "Validation error: " . $e->getMessage() . "\n";
+    // Output: "Missing the required parameter $server when calling initGet"
+} catch (ApiException $e) {
+    echo "API error: " . $e->getMessage() . "\n";
+}
+```
+
+<Note>
+The SDK throws `InvalidArgumentException` for missing required parameters before making API requests.
+</Note>
+
+### HTTP Status Code Errors
+
+```php
+try {
+    $result = $api->someMethod();
+} catch (ApiException $e) {
+    switch ($e->getCode()) {
+        case 400:
+            echo "Bad Request: Invalid parameters\n";
+            break;
+        case 401:
+            echo "Unauthorized: Invalid or missing token\n";
+            break;
+        case 403:
+            echo "Forbidden: Insufficient permissions\n";
+            break;
+        case 404:
+            echo "Not Found: Resource does not exist\n";
+            break;
+        case 429:
+            echo "Too Many Requests: Rate limit exceeded\n";
+            break;
+        case 500:
+            echo "Internal Server Error\n";
+            break;
+        case 503:
+            echo "Service Unavailable: Server is down\n";
+            break;
+        default:
+            echo "Error " . $e->getCode() . ": " . $e->getMessage() . "\n";
+    }
+}
+```
+
+## Advanced Error Handling
+
+### Complete Error Information
+
+```php
+function handleApiError(ApiException $e) {
+    $errorInfo = [
+        'message' => $e->getMessage(),
+        'code' => $e->getCode(),
+        'headers' => $e->getResponseHeaders(),
+        'body' => $e->getResponseBody(),
+        'object' => $e->getResponseObject()
+    ];
+    
+    // Log error
+    error_log(json_encode($errorInfo));
+    
+    // Display user-friendly message
+    switch ($e->getCode()) {
+        case 401:
+            return "Please log in again. Your session has expired.";
+        case 500:
+            return "Server error. Please try again later.";
+        default:
+            return "An error occurred. Please contact support.";
+    }
+}
+
+try {
+    $result = $api->someMethod();
+} catch (ApiException $e) {
+    $message = handleApiError($e);
+    echo $message;
+}
+```
+
+### Retry Logic
+
+```php
+function callApiWithRetry($callable, $maxRetries = 3) {
+    $attempt = 0;
+    
+    while ($attempt < $maxRetries) {
+        try {
+            return $callable();
+        } catch (ApiException $e) {
+            $attempt++;
+            
+            // Retry on server errors or rate limits
+            if (in_array($e->getCode(), [429, 500, 503]) && $attempt < $maxRetries) {
+                $delay = pow(2, $attempt); // Exponential backoff
+                echo "Retry attempt $attempt after {$delay}s...\n";
+                sleep($delay);
+                continue;
+            }
+            
+            // Don't retry on client errors
+            throw $e;
+        }
+    }
+}
+
+// Usage
+try {
+    $result = callApiWithRetry(function() use ($api) {
+        return $api->pingGet();
+    });
+} catch (ApiException $e) {
+    echo "Failed after retries: " . $e->getMessage() . "\n";
+}
+```
+
+### Custom Exception Handler
+
+```php
+class MT5ExceptionHandler {
+    public static function handle(\Throwable $e) {
+        if ($e instanceof ApiException) {
+            self::handleApiException($e);
+        } elseif ($e instanceof \InvalidArgumentException) {
+            self::handleValidationException($e);
+        } else {
+            self::handleGenericException($e);
+        }
+    }
+    
+    private static function handleApiException(ApiException $e) {
+        $logData = [
+            'type' => 'API_ERROR',
+            'code' => $e->getCode(),
+            'message' => $e->getMessage(),
+            'body' => $e->getResponseBody()
+        ];
+        
+        error_log(json_encode($logData));
+    }
+    
+    private static function handleValidationException(\InvalidArgumentException $e) {
+        error_log("Validation Error: " . $e->getMessage());
+    }
+    
+    private static function handleGenericException(\Throwable $e) {
+        error_log("Unexpected Error: " . $e->getMessage());
+    }
+}
+
+// Usage
+try {
+    $result = $api->initGet('127.0.0.1:443', 'login', 'password');
+} catch (\Throwable $e) {
+    MT5ExceptionHandler::handle($e);
+}
+```
+
+## Error Response Structure
+
+Typical error response from the API:
+
+```json
+{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Authentication failed",
+    "details": {
+      "reason": "Invalid password"
+    }
+  }
+}
+```
+
+Parsing error responses:
+
+```php
+try {
+    $result = $api->someMethod();
+} catch (ApiException $e) {
+    $body = $e->getResponseBody();
+    
+    if (is_string($body)) {
+        $error = json_decode($body, true);
+        
+        if (isset($error['error'])) {
+            echo "Error Code: " . $error['error']['code'] . "\n";
+            echo "Message: " . $error['error']['message'] . "\n";
+            
+            if (isset($error['error']['details'])) {
+                echo "Details: " . print_r($error['error']['details'], true);
+            }
+        }
+    }
+}
+```
+
+## Best Practices
+
+<Info>
+1. **Always wrap API calls in try-catch blocks** - Never make API calls without error handling
+2. **Log detailed error information** - Include response body and headers in logs for debugging
+3. **Show user-friendly messages** - Don't expose raw API errors to end users
+4. **Implement retry logic** - Retry on transient errors (429, 500, 503)
+5. **Handle validation errors** - Catch `InvalidArgumentException` for parameter validation
+6. **Monitor error rates** - Track and alert on high error rates in production
+</Info>
+
+## Next Steps
+
+- [Authentication](/concepts/authentication) - Handle authentication errors
+- [Configuration](/concepts/configuration) - Configure debug mode for error investigation

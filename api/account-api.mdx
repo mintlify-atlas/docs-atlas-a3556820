@@ -1,0 +1,189 @@
+---
+title: AccountApi
+description: Account management operations for MT5 trading accounts
+---
+
+The `AccountApi` class provides methods for retrieving and managing trading account information.
+
+## Constructor
+
+```php
+public function __construct(
+    ClientInterface $client = null,
+    Configuration $config = null,
+    HeaderSelector $selector = null
+)
+```
+
+Creates a new AccountApi instance.
+
+<ParamField path="client" type="ClientInterface" optional>
+  Guzzle HTTP client instance. If not provided, a new Client will be created.
+</ParamField>
+
+<ParamField path="config" type="Configuration" optional>
+  SDK configuration object. If not provided, a new Configuration will be created.
+</ParamField>
+
+<ParamField path="selector" type="HeaderSelector" optional>
+  Header selector instance. If not provided, a new HeaderSelector will be created.
+</ParamField>
+
+## Methods
+
+### getConfig
+
+Retrieves the current configuration object.
+
+```php
+public function getConfig(): Configuration
+```
+
+<ResponseField name="Configuration" type="Configuration">
+  The current SDK configuration object
+</ResponseField>
+
+---
+
+### accountLoginGet
+
+Retrieves account information by user login.
+
+```php
+public function accountLoginGet(string $login): \D4T\MT5Sdk\Models\Account
+```
+
+<ParamField path="login" type="string" required>
+  User login ID to retrieve account information for
+</ParamField>
+
+<ResponseField name="Account" type="\D4T\MT5Sdk\Models\Account">
+  Account object containing account details including balance, equity, margin, and other account metrics
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When login parameter is missing or empty
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\AccountApi;
+
+$accountApi = new AccountApi();
+
+try {
+    $account = $accountApi->accountLoginGet('12345');
+    
+    echo "Balance: " . $account->getBalance() . "\n";
+    echo "Equity: " . $account->getEquity() . "\n";
+    echo "Margin: " . $account->getMargin() . "\n";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### accountLoginGetWithHttpInfo
+
+Retrieves account information with HTTP response details.
+
+```php
+public function accountLoginGetWithHttpInfo(string $login): array
+```
+
+<ParamField path="login" type="string" required>
+  User login ID to retrieve account information for
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\Account` - The account object
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When login parameter is missing or empty
+
+**Example:**
+
+```php
+list($account, $statusCode, $headers) = $accountApi->accountLoginGetWithHttpInfo('12345');
+
+echo "Status: " . $statusCode . "\n";
+echo "Balance: " . $account->getBalance();
+```
+
+---
+
+### accountLoginGetAsync
+
+Asynchronously retrieves account information by user login.
+
+```php
+public function accountLoginGetAsync(string $login): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ParamField path="login" type="string" required>
+  User login ID to retrieve account information for
+</ParamField>
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to `\D4T\MT5Sdk\Models\Account`
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - When login parameter is missing or empty
+
+**Example:**
+
+```php
+$promise = $accountApi->accountLoginGetAsync('12345');
+
+$promise->then(
+    function ($account) {
+        echo "Balance: " . $account->getBalance();
+    },
+    function ($exception) {
+        echo "Error: " . $exception->getMessage();
+    }
+);
+```
+
+---
+
+### accountLoginGetAsyncWithHttpInfo
+
+Asynchronously retrieves account information with HTTP details.
+
+```php
+public function accountLoginGetAsyncWithHttpInfo(string $login): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ParamField path="login" type="string" required>
+  User login ID to retrieve account information for
+</ParamField>
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to an array containing the account object, HTTP status code, and response headers
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - When login parameter is missing or empty
+
+**Example:**
+
+```php
+$promise = $accountApi->accountLoginGetAsyncWithHttpInfo('12345');
+
+$promise->then(
+    function ($response) {
+        list($account, $statusCode, $headers) = $response;
+        echo "Status: " . $statusCode . "\n";
+        echo "Balance: " . $account->getBalance();
+    }
+);
+```

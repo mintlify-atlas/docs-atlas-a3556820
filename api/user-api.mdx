@@ -1,0 +1,434 @@
+---
+title: UserApi
+description: User management operations for creating, updating, and managing MT5 users
+---
+
+The `UserApi` class provides comprehensive user management functionality including creating users, updating account information, managing deposits/withdrawals, and password resets.
+
+## Constructor
+
+```php
+public function __construct(
+    ClientInterface $client = null,
+    Configuration $config = null,
+    HeaderSelector $selector = null
+)
+```
+
+Creates a new UserApi instance.
+
+<ParamField path="client" type="ClientInterface" optional>
+  Guzzle HTTP client instance. If not provided, a new Client will be created.
+</ParamField>
+
+<ParamField path="config" type="Configuration" optional>
+  SDK configuration object. If not provided, a new Configuration will be created.
+</ParamField>
+
+<ParamField path="selector" type="HeaderSelector" optional>
+  Header selector instance. If not provided, a new HeaderSelector will be created.
+</ParamField>
+
+## Methods
+
+### getConfig
+
+Retrieves the current configuration object.
+
+```php
+public function getConfig(): Configuration
+```
+
+<ResponseField name="Configuration" type="Configuration">
+  The current SDK configuration object
+</ResponseField>
+
+---
+
+### userAddPost
+
+Creates a new trading user account.
+
+```php
+public function userAddPost(\D4T\MT5Sdk\Models\User $body): \D4T\MT5Sdk\Models\UserReturnType
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\User" required>
+  User object containing:
+  - `password_investor`: Investor password (string)
+  - `password`: Main password (string)
+  - `name`: User name (string)
+  - `email`: User email address (string)
+  - `group`: Trading group name (string)
+  - `leverage`: Account leverage (int)
+</ParamField>
+
+<ResponseField name="UserReturnType" type="\D4T\MT5Sdk\Models\UserReturnType">
+  Object containing the created user's details including the assigned login ID
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When body parameter is missing
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\MT5Manager\UserApi;
+use D4T\MT5Sdk\Models\User;
+
+$userApi = new UserApi();
+
+$newUser = new User();
+$newUser->setPassword('123456Aa');
+$newUser->setPasswordInvestor('123456Aa');
+$newUser->setName('John Doe');
+$newUser->setEmail('john@example.com');
+$newUser->setGroup('demo\\demoforex');
+$newUser->setLeverage(100);
+
+try {
+    $result = $userApi->userAddPost($newUser);
+    echo "User created with login: " . $result->getLogin();
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error creating user: " . $e->getMessage();
+}
+```
+
+---
+
+### userAddPostWithHttpInfo
+
+Creates a new user account with HTTP response details.
+
+```php
+public function userAddPostWithHttpInfo(\D4T\MT5Sdk\Models\User $body): array
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\User" required>
+  User object with account creation parameters
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `\D4T\MT5Sdk\Models\UserReturnType` - The created user details
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When body parameter is missing
+
+---
+
+### userAddPostAsync
+
+Asynchronously creates a new user account.
+
+```php
+public function userAddPostAsync(\D4T\MT5Sdk\Models\User $body): \GuzzleHttp\Promise\PromiseInterface
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\User" required>
+  User object with account creation parameters
+</ParamField>
+
+<ResponseField name="PromiseInterface" type="\GuzzleHttp\Promise\PromiseInterface">
+  Promise that resolves to `\D4T\MT5Sdk\Models\UserReturnType`
+</ResponseField>
+
+**Throws:**
+- `\InvalidArgumentException` - When body parameter is missing
+
+---
+
+### updateUser
+
+Updates an existing user's information.
+
+```php
+public function updateUser(\D4T\MT5Sdk\Models\User $body): void
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\User" required>
+  User object containing:
+  - `login`: User login ID (int)
+  - `password`: New password (string, optional)
+  - `name`: New name (string, optional)
+  - Other updatable user fields
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When body parameter is missing
+
+**Example:**
+
+```php
+$user = new User();
+$user->setLogin(12345);
+$user->setPassword('newPassword123');
+$user->setName('Jane Doe');
+
+try {
+    $userApi->updateUser($user);
+    echo "User updated successfully";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### updateUserWithHttpInfo
+
+Updates user information with HTTP response details.
+
+```php
+public function updateUserWithHttpInfo(\D4T\MT5Sdk\Models\User $body): array
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\User" required>
+  User object with fields to update
+</ParamField>
+
+<ResponseField name="array" type="array">
+  Array containing:
+  - [0]: `null` - No response body
+  - [1]: `int` - HTTP status code
+  - [2]: `array` - HTTP response headers
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response
+- `\InvalidArgumentException` - When body parameter is missing
+
+---
+
+### userUserLoginGet
+
+Retrieves user details by login ID.
+
+```php
+public function userUserLoginGet(string $user_login): \D4T\MT5Sdk\Models\User
+```
+
+<ParamField path="user_login" type="string" required>
+  The user login ID to fetch
+</ParamField>
+
+<ResponseField name="User" type="\D4T\MT5Sdk\Models\User">
+  User object containing complete user information
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When user_login is missing
+
+**Example:**
+
+```php
+try {
+    $user = $userApi->userUserLoginGet('12345');
+    echo "Name: " . $user->getName() . "\n";
+    echo "Email: " . $user->getEmail() . "\n";
+    echo "Group: " . $user->getGroup();
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "User not found: " . $e->getMessage();
+}
+```
+
+---
+
+### userUserLoginDelete
+
+Deletes a user account.
+
+```php
+public function userUserLoginDelete(string $user_login): void
+```
+
+<ParamField path="user_login" type="string" required>
+  The login ID of the user to delete
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When user_login is missing
+
+**Example:**
+
+```php
+try {
+    $userApi->userUserLoginDelete('12345');
+    echo "User deleted successfully";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error deleting user: " . $e->getMessage();
+}
+```
+
+---
+
+### userDepositPost
+
+Deposits funds into a user's account.
+
+```php
+public function userDepositPost(\D4T\MT5Sdk\Models\BalanceType $body): void
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\BalanceType" required>
+  Balance operation object containing:
+  - `login`: User login ID (int)
+  - `amount`: Deposit amount (float)
+  - `type`: Operation type (int, typically 3)
+  - `comment`: Transaction comment (string)
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When body parameter is missing
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\Models\BalanceType;
+
+$deposit = new BalanceType();
+$deposit->setLogin(12345);
+$deposit->setAmount(1000.00);
+$deposit->setType(3);
+$deposit->setComment('Deposit from bank transfer');
+
+try {
+    $userApi->userDepositPost($deposit);
+    echo "Deposit successful";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Deposit failed: " . $e->getMessage();
+}
+```
+
+---
+
+### userWithdrawPost
+
+Withdraws funds from a user's account.
+
+```php
+public function userWithdrawPost(\D4T\MT5Sdk\Models\BalanceType $body): void
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\BalanceType" required>
+  Balance operation object containing:
+  - `login`: User login ID (int)
+  - `amount`: Withdrawal amount (float)
+  - `type`: Operation type (int, typically 3)
+  - `comment`: Transaction comment (string)
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When body parameter is missing
+
+**Example:**
+
+```php
+$withdrawal = new BalanceType();
+$withdrawal->setLogin(12345);
+$withdrawal->setAmount(500.00);
+$withdrawal->setType(3);
+$withdrawal->setComment('Withdrawal to bank');
+
+try {
+    $userApi->userWithdrawPost($withdrawal);
+    echo "Withdrawal successful";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Withdrawal failed: " . $e->getMessage();
+}
+```
+
+---
+
+### userResetPwdPost
+
+Resets a user's password.
+
+```php
+public function userResetPwdPost(\D4T\MT5Sdk\Models\ResetPwdType $body): void
+```
+
+<ParamField path="body" type="\D4T\MT5Sdk\Models\ResetPwdType" required>
+  Password reset object containing:
+  - `login`: User login ID (int)
+  - `password`: New password (string)
+  - `change_investor`: Whether to change investor password (int, 0 or 1)
+</ParamField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (400 error)
+- `\InvalidArgumentException` - When body parameter is missing
+
+**Example:**
+
+```php
+use D4T\MT5Sdk\Models\ResetPwdType;
+
+$resetPwd = new ResetPwdType();
+$resetPwd->setLogin(12345);
+$resetPwd->setPassword('newSecurePassword123');
+$resetPwd->setChangeInvestor(0);
+
+try {
+    $userApi->userResetPwdPost($resetPwd);
+    echo "Password reset successful";
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Password reset failed: " . $e->getMessage();
+}
+```
+
+---
+
+### usersGroupGet
+
+Retrieves a list of user logins for a specific group.
+
+```php
+public function usersGroupGet(string $group): \D4T\MT5Sdk\Models\CachedLogins
+```
+
+<ParamField path="group" type="string" required>
+  Group name to retrieve users from
+</ParamField>
+
+<ResponseField name="CachedLogins" type="\D4T\MT5Sdk\Models\CachedLogins">
+  Object containing an array of user login IDs belonging to the specified group
+</ResponseField>
+
+**Throws:**
+- `\D4T\MT5Sdk\ApiException` - On non-2xx response (200 success, 400 error)
+- `\InvalidArgumentException` - When group parameter is missing
+
+**Example:**
+
+```php
+try {
+    $logins = $userApi->usersGroupGet('demo\\demoforex');
+    foreach ($logins->getLogins() as $login) {
+        echo "User login: " . $login . "\n";
+    }
+} catch (\D4T\MT5Sdk\ApiException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+---
+
+### Async Method Variants
+
+All methods have async variants with the following naming patterns:
+
+- `methodNameAsync()` - Returns a Promise resolving to the response object
+- `methodNameAsyncWithHttpInfo()` - Returns a Promise resolving to [response, statusCode, headers]
+
+These variants accept the same parameters as their synchronous counterparts and throw `\InvalidArgumentException` for missing required parameters.
