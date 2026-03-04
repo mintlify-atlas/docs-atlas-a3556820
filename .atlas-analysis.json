@@ -1,0 +1,106 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "MT5 Manager API",
+  "projectDescription": "PHP SDK for MetaTrader 5 Manager API that provides programmatic access to trading accounts, positions, orders, and market symbols.",
+  "theme": "sequoia",
+  "primaryColor": "#1E40AF",
+  "lightColor": "#3B82F6",
+  "darkColor": "#1E3A8A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/authentication",
+              "concepts/configuration",
+              "concepts/error-handling"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/account-management",
+              "guides/user-management",
+              "guides/trading-operations",
+              "guides/market-data"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Classes",
+            "pages": [
+              "api/basic-api",
+              "api/account-api",
+              "api/user-api",
+              "api/trade-api",
+              "api/group-api",
+              "api/symbol-api"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api/models/account",
+              "api/models/user",
+              "api/models/position",
+              "api/models/order",
+              "api/models/deal",
+              "api/models/group",
+              "api/models/symbol"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Complete MT5 Manager API integration with PHP",
+    "User and account management operations",
+    "Trading operations (positions, orders, deals)",
+    "Market data access (symbols, groups)",
+    "Bearer token authentication",
+    "Full type definitions and models"
+  ],
+  "publicApiSurface": [
+    "BasicApi::initGet() - Initialize manager connection",
+    "BasicApi::pingGet() - Ping API connection",
+    "AccountApi::accountLoginGet() - Get account by login",
+    "UserApi::userAddPost() - Create new user",
+    "UserApi::updateUser() - Update existing user",
+    "UserApi::userUserLoginGet() - Get user by login",
+    "UserApi::userUserLoginDelete() - Delete user",
+    "UserApi::usersGroupGet() - Get users by group",
+    "UserApi::userDepositPost() - Deposit to account",
+    "UserApi::userWithdrawPost() - Withdraw from account",
+    "UserApi::userResetPwdPost() - Reset user password",
+    "TradeApi::positionsUserLoginGet() - Get user positions",
+    "TradeApi::ordersUserLoginGet() - Get user orders",
+    "TradeApi::dealsUserLoginGet() - Get user deals",
+    "TradeApi::closeAllUserLoginDelete() - Close all positions",
+    "GroupApi::groupsGet() - Get all groups",
+    "GroupApi::groupGroupNameGet() - Get group by name",
+    "SymbolApi::symbolsGet() - Get market symbols",
+    "Account model - Account data structure",
+    "User model - User data structure",
+    "Position model - Position data structure",
+    "Order model - Order data structure",
+    "Deal model - Deal data structure",
+    "Group model - Group data structure",
+    "Symbol model - Symbol data structure"
+  ]
+}
