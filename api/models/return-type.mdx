@@ -1,0 +1,74 @@
+---
+title: ReturnType
+description: Generic response model for API operations
+---
+
+## Overview
+
+The `ReturnType` model represents a generic response structure used by various API methods to indicate the success or failure of an operation.
+
+## Properties
+
+<ResponseField name="code" type="int">
+  Response code indicating the status of the operation. A value of `0` typically indicates success, while non-zero values indicate errors.
+</ResponseField>
+
+<ResponseField name="data" type="string">
+  Additional data or message describing the result of the operation
+</ResponseField>
+
+## Example JSON
+
+```json
+{
+  "code": 0,
+  "data": "Operation completed successfully"
+}
+```
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\ReturnType;
+
+// Most API methods return specific types, but ReturnType is used for generic responses
+try {
+    $result = $api->someOperation();
+    
+    if ($result->getCode() === 0) {
+        echo "Success: " . $result->getData();
+    } else {
+        echo "Error (code " . $result->getCode() . "): " . $result->getData();
+    }
+} catch (Exception $e) {
+    echo 'Operation failed: ' . $e->getMessage();
+}
+```
+
+## Methods
+
+### Getters
+
+- `getCode(): int` - Get the response code
+- `getData(): string` - Get the response data
+
+### Setters
+
+- `setCode(int $code): self` - Set the response code
+- `setData(string $data): self` - Set the response data
+
+## Common Response Codes
+
+| Code | Meaning |
+|------|--------|
+| 0 | Success |
+| 1 | General error |
+| 401 | Authentication failed |
+| 404 | Resource not found |
+| 500 | Internal server error |
+
+## Related
+
+- [Error Handling](/concepts/error-handling) - Learn how to handle API errors
+- [InitReturnType](/api/models/init-return-type) - Specific return type for initialization
+- [PingReturnType](/api/models/ping-return-type) - Specific return type for ping requests

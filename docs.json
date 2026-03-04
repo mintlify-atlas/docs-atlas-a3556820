@@ -73,7 +73,12 @@
               "api/models/order",
               "api/models/deal",
               "api/models/group",
-              "api/models/symbol"
+              "api/models/symbol",
+              "api/models/balance-type",
+              "api/models/init-return-type",
+              "api/models/ping-return-type",
+              "api/models/reset-pwd-type",
+              "api/models/return-type"
             ]
           }
         ]

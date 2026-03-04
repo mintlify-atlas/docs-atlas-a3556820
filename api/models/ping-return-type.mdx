@@ -1,0 +1,64 @@
+---
+title: PingReturnType
+description: Response model for API ping requests
+---
+
+## Overview
+
+The `PingReturnType` model represents the response returned by the `pingGet()` method in the BasicApi. It confirms the API is accessible and responsive.
+
+## Properties
+
+<ResponseField name="code" type="int">
+  Response code indicating the status of the ping request. A value of `0` typically indicates success.
+</ResponseField>
+
+<ResponseField name="ping" type="string">
+  Ping response message, typically "pong" or a timestamp confirming the server is responsive.
+</ResponseField>
+
+## Example JSON
+
+```json
+{
+  "code": 0,
+  "ping": "pong"
+}
+```
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use GuzzleHttp\Client;
+
+$basicApi = new BasicApi(new Client(), $config);
+
+try {
+    // Ping the API
+    $pingResult = $basicApi->pingGet();
+    
+    // Check response
+    if ($pingResult->getCode() === 0) {
+        echo "API is online: " . $pingResult->getPing();
+    }
+} catch (Exception $e) {
+    echo 'Ping failed: ' . $e->getMessage();
+}
+```
+
+## Methods
+
+### Getters
+
+- `getCode(): int` - Get the response code
+- `getPing(): string` - Get the ping response message
+
+### Setters
+
+- `setCode(int $code): self` - Set the response code
+- `setPing(string $ping): self` - Set the ping response message
+
+## Related
+
+- [BasicApi](/api/basic-api) - Returns this model from `pingGet()` method

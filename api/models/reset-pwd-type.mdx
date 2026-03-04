@@ -1,0 +1,79 @@
+---
+title: ResetPwdType
+description: Request model for password reset operations
+---
+
+## Overview
+
+The `ResetPwdType` model represents the data structure used for resetting user passwords. This model is used as the request body for the `userResetPwdPost()` method in the UserApi.
+
+## Properties
+
+<ResponseField name="login" type="int" required>
+  The user's login ID whose password needs to be reset
+</ResponseField>
+
+<ResponseField name="password" type="string" required>
+  The new password for the user account
+</ResponseField>
+
+<ResponseField name="change_investor" type="bool">
+  Whether to also change the investor password. Default is `false`.
+</ResponseField>
+
+## Example JSON
+
+```json
+{
+  "login": 12345,
+  "password": "NewSecurePassword123!",
+  "change_investor": false
+}
+```
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\ResetPwdType;
+use D4T\MT5Sdk\MT5Manager\UserApi;
+
+// Create password reset request
+$resetPwd = new ResetPwdType();
+$resetPwd->setLogin(12345);
+$resetPwd->setPassword('NewSecurePassword123!');
+$resetPwd->setChangeInvestor(false);
+
+// Execute password reset
+$userApi = new UserApi(new Client(), $config);
+try {
+    $result = $userApi->userResetPwdPost($resetPwd);
+    echo "Password reset successful";
+} catch (Exception $e) {
+    echo 'Password reset failed: ' . $e->getMessage();
+}
+```
+
+## Methods
+
+### Getters
+
+- `getLogin(): int` - Get the login ID
+- `getPassword(): string` - Get the new password
+- `getChangeInvestor(): bool` - Get whether to change investor password
+
+### Setters
+
+- `setLogin(int $login): self` - Set the login ID
+- `setPassword(string $password): self` - Set the new password
+- `setChangeInvestor(bool $changeInvestor): self` - Set whether to change investor password
+
+## Security Considerations
+
+<Warning>
+  Always use strong passwords and ensure passwords are transmitted securely over HTTPS. Never log or store passwords in plain text.
+</Warning>
+
+## Related
+
+- [UserApi](/api/user-api) - Use this model with `userResetPwdPost()` method
+- [User Model](/api/models/user) - User account information

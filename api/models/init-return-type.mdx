@@ -1,0 +1,78 @@
+---
+title: InitReturnType
+description: Response model for manager initialization
+---
+
+## Overview
+
+The `InitReturnType` model represents the response returned by the `initGet()` method in the BasicApi. It contains the authentication token required for all subsequent API calls.
+
+## Properties
+
+<ResponseField name="code" type="int">
+  Response code indicating the status of the initialization request. A value of `0` typically indicates success.
+</ResponseField>
+
+<ResponseField name="token" type="string">
+  The bearer authentication token to use in subsequent API requests. This token must be included in the `Authorization` header of all authenticated API calls.
+</ResponseField>
+
+## Example JSON
+
+```json
+{
+  "code": 0,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\MT5Manager\BasicApi;
+use D4T\MT5Sdk\Configuration;
+use GuzzleHttp\Client;
+
+$basicApi = new BasicApi(new Client());
+
+try {
+    // Initialize connection
+    $initResult = $basicApi->initGet(
+        '127.0.0.1:443',
+        'manager_login',
+        'manager_password'
+    );
+    
+    // Extract token from response
+    $token = $initResult->getToken();
+    $code = $initResult->getCode();
+    
+    if ($code === 0) {
+        // Use token for subsequent requests
+        $config = Configuration::getDefaultConfiguration()
+            ->setAccessToken($token);
+        
+        echo "Successfully initialized. Token: " . $token;
+    }
+} catch (Exception $e) {
+    echo 'Initialization failed: ' . $e->getMessage();
+}
+```
+
+## Methods
+
+### Getters
+
+- `getCode(): int` - Get the response code
+- `getToken(): string` - Get the authentication token
+
+### Setters
+
+- `setCode(int $code): self` - Set the response code
+- `setToken(string $token): self` - Set the authentication token
+
+## Related
+
+- [BasicApi](/api/basic-api) - Returns this model from `initGet()` method
+- [Authentication](/concepts/authentication) - Learn how to use the token for authentication
+- [Configuration](/concepts/configuration) - Configure the SDK with the token

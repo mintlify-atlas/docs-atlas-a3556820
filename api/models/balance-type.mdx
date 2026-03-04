@@ -1,0 +1,77 @@
+---
+title: BalanceType
+description: Request model for deposit and withdrawal operations
+---
+
+## Overview
+
+The `BalanceType` model represents the data structure used for deposit and withdrawal operations on trading accounts. This model is used as the request body for the `userDepositPost()` and `userWithdrawPost()` methods in the UserApi.
+
+## Properties
+
+<ResponseField name="login" type="int" required>
+  The user's login ID for the trading account
+</ResponseField>
+
+<ResponseField name="amount" type="float" required>
+  The amount to deposit or withdraw. Must be a positive number.
+</ResponseField>
+
+<ResponseField name="type" type="float" required>
+  The transaction type indicator. Typically used to categorize the balance operation.
+</ResponseField>
+
+<ResponseField name="comment" type="string">
+  Optional comment or description for the balance operation
+</ResponseField>
+
+## Example JSON
+
+```json
+{
+  "login": 12345,
+  "amount": 1000.00,
+  "type": 2,
+  "comment": "Monthly deposit"
+}
+```
+
+## Usage Example
+
+```php
+use D4T\MT5Sdk\Models\BalanceType;
+use D4T\MT5Sdk\MT5Manager\UserApi;
+
+// Create a deposit request
+$balanceType = new BalanceType();
+$balanceType->setLogin(12345);
+$balanceType->setAmount(1000.00);
+$balanceType->setType(2);
+$balanceType->setComment('Monthly deposit');
+
+// Execute deposit
+$userApi = new UserApi(new Client(), $config);
+$result = $userApi->userDepositPost($balanceType);
+```
+
+## Methods
+
+### Getters
+
+- `getLogin(): int` - Get the login ID
+- `getAmount(): float` - Get the amount
+- `getType(): float` - Get the transaction type
+- `getComment(): string` - Get the comment
+
+### Setters
+
+- `setLogin(int $login): self` - Set the login ID
+- `setAmount(float $amount): self` - Set the amount
+- `setType(float $type): self` - Set the transaction type
+- `setComment(string $comment): self` - Set the comment
+
+## Related
+
+- [UserApi](/api/user-api) - Use this model with deposit and withdrawal methods
+- [User Model](/api/models/user) - User account information
+- [Account Model](/api/models/account) - Account balance and equity details
